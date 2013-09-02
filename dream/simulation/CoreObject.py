@@ -33,6 +33,7 @@ class CoreObject(Process):
     def __init__(self):
         self.objectIsUp=SimEvent(name='objectIsUp')
         self.canDisposeOrHaveFailure=SimEvent(name='canDisposeOrHaveFailure') 
+        self.canAcceptAndIsRequestedEvent=SimEvent(name='canAcceptAndIsRequestedEvent') 
     
     def initilize(self):
         Process.__init__(self) 
@@ -82,10 +83,14 @@ class CoreObject(Process):
     #gets an entity from the predecessor that the predecessor index points to     
     def getEntity(self):
         #print now(), self.objName, "getting Entity from", self.previous[self.predecessorIndex].objName
-        self.Res.activeQ=[self.previous[self.predecessorIndex].Res.activeQ[0]]+self.Res.activeQ   #get the entity from the previous object
-                                                                                                      #and put it in front of the activeQ       
-        self.previous[self.predecessorIndex].removeEntity()                                           #remove the entity from the previous object  
-        
+        #print now(), self.objName, self.previous[self.predecessorIndex].objName
+        try:
+            self.Res.activeQ=[self.previous[self.predecessorIndex].Res.activeQ[0]]+self.Res.activeQ   #get the entity from the previous object
+                                                                                                              #and put it in front of the activeQ       
+            self.previous[self.predecessorIndex].removeEntity()                                           #remove the entity from the previous object 
+        except IndexError:
+            print "error"
+            
     #actions to be taken after the simulation ends
     def postProcessing(self, MaxSimtime):
         pass    

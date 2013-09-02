@@ -84,9 +84,17 @@ class Queue(CoreObject):
              
     def run(self):  
         while 1:  
-            yield waituntil, self, self.canAcceptAndIsRequested     #wait until the Queue can accept an entity
-                                                                    #and one predecessor requests it                                                  
-            self.getEntity()                                                                
+            #yield waituntil, self, self.canAcceptAndIsRequested     #wait until the Queue can accept an entity
+                                                                    #and one predecessor requests it     
+            while 1:                                                       
+                yield waitevent, self, self.canAcceptAndIsRequestedEvent
+                if self.canAcceptAndIsRequested():
+                    break                                             
+            
+            self.getEntity()
+            
+            for coreObject in self.next:
+                coreObject.canAcceptAndIsRequestedEvent.signal()
             
             #if entity just got to the dummyQ set its startTime as the current time         
             if self.isDummy:               
@@ -105,7 +113,7 @@ class Queue(CoreObject):
         if 1:
             return len(self.Res.activeQ)<self.capacity   
     
-        '''
+        
         if len(self.Res.activeQ)==self.capacity:
             return False
          
@@ -123,7 +131,7 @@ class Queue(CoreObject):
         if thecaller is self.previous[self.predecessorIndex]:
             flag=True
         return len(self.Res.activeQ)<self.capacity and flag  
-        '''
+        
     #checks if the Queue can dispose an entity to the following object
     #it checks also who called it and returns TRUE only to the successor that will give the entity. 
     #this is kind of slow I think got to check   
@@ -207,6 +215,7 @@ class Queue(CoreObject):
         self.Res.activeQ.pop(0)
         self.updatePredecessorIndex()     
         self.previous[self.predecessorIndex].canDisposeOrHaveFailure.signal("canDispose")
+        self.canAcceptAndIsRequestedEvent.signal()
         #print now(), self.objName, "sent signal to", self.previous[self.predecessorIndex].objName
              
     #outputs message to the trace.xls. Format is (Simulation Time | Entity Name | message)

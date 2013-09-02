@@ -113,9 +113,15 @@ class Machine(CoreObject):
     def run(self):
         #execute all through simulation time
         while 1:
-            yield waituntil, self, self.canAcceptAndIsRequested     #wait until the machine can accept an entity
-                                                                    #and one predecessor requests it      
-                                                                                          
+            #yield waituntil, self, self.canAcceptAndIsRequested     #wait until the machine can accept an entity
+                                                                        #and one predecessor requests it   
+                                                                        
+            while 1:
+                #self.canAcceptAndIsRequestedEvent.occurred=False                
+                yield waitevent, self, self.canAcceptAndIsRequestedEvent
+                if self.canAcceptAndIsRequested():
+                    break
+                                                                                                                                                               
             self.getEntity()    #get the entity from the predecessor
 
             self.outputTrace("got into "+self.objName)
@@ -160,6 +166,10 @@ class Machine(CoreObject):
         
             self.outputTrace("ended processing in "+self.objName)  
             self.waitToDispose=True
+            
+            for coreObject in self.next:
+                coreObject.canAcceptAndIsRequestedEvent.signal()
+            
             self.totalWorkingTime+=tinMStart   #the total processing time for this entity is what the distribution initially gave          
             self.timeLastEntityEnded=now()      #this holds the last time that an entity ended processing in Machine 
             self.nameLastEntityEnded=self.currentEntity.name  #this holds the name of the last entity that ended processing in Machine
@@ -172,12 +182,11 @@ class Machine(CoreObject):
             notBlockageTime=0    
             
             canDisposeRightAway=False
+            #check if there is one available successor
             for nextObject in self.next:
                 canDisposeRightAway=nextObject.canAccept()
-                #print now(), self.objName, nextObject.Res.activeQ
-                #print now(), self.objName, canDisposeRightAway
 
-            
+            #if there was no available successor the Machine gets blocked
             if canDisposeRightAway==False:    
                 while 1:
                     #yield waituntil, self, self.ifCanDisposeOrHaveFailure       #wait until the next Object has an 
@@ -192,8 +201,10 @@ class Machine(CoreObject):
                                                                         #is available or machine has failure
                     signal=self.canDisposeOrHaveFailure.signalparam                                            
                     
+                    
                     #if the object can dispose the Entity then the loop breaks       
                     if signal=="canDispose":
+                        print now(), self.objName, "can dispose"
                         break
                     #if we have a failure while the Machine is blocked
                     elif signal=="haveFailure":
@@ -204,6 +215,11 @@ class Machine(CoreObject):
                         self.downTimeInTryingToReleaseCurrentEntity+=now()-failTime         
                         self.downTimeInCurrentEntity+=now()-failTime        
                         self.timeLastFailureEnded=now()     
+                        for coreObject in self.next:
+                            coreObject.canAcceptAndIsRequestedEvent.signal()
+                        for nextObject in self.next:
+                            if nextObject.canAccept():
+                                break
                     '''
                     if self.Up:  #if Next object available break 
                         break
@@ -216,7 +232,7 @@ class Machine(CoreObject):
                         self.downTimeInCurrentEntity+=now()-failTime        
                         self.timeLastFailureEnded=now()           
                     '''
-                                
+                 
             totalTime=now()-timeEntered    
             blockageTime=totalTime-(tinMStart+failureTime)
             self.totalBlockageTime+=totalTime-(tinMStart+failureTime)   #the time of blockage is derived from 
@@ -241,7 +257,7 @@ class Machine(CoreObject):
         #if(len(self.previous)==1):   
         if 1:
             return self.Up and len(self.Res.activeQ)==0
-        '''
+
         #if the machine is busy return False immediately
         if len(self.Res.activeQ)==self.capacity:
             return False
@@ -255,14 +271,12 @@ class Machine(CoreObject):
         caller_calls_self = frame.f_code.co_varnames[0]
         thecaller = frame.f_locals[caller_calls_self]
         
-        print thecaller.objName
-        
         #return true only to the predecessor from which the queue will take 
         flag=False
         if thecaller is self.previous[self.predecessorIndex]:
             flag=True
         return len(self.Res.activeQ)<self.capacity and flag  
-        '''
+
     
     #checks if the Machine can accept an entity and there is an entity in some predecessor waiting for it
     #also updates the predecessorIndex to the one that is to be taken
@@ -319,6 +333,7 @@ class Machine(CoreObject):
         self.downTimeInTryingToReleaseCurrentEntity=0    
         self.updatePredecessorIndex() 
         self.previous[self.predecessorIndex].canDisposeOrHaveFailure.signal("canDispose")
+        self.canAcceptAndIsRequestedEvent.signal()
         #print now(), self.objName, "sent signal to", self.previous[self.predecessorIndex].objName
      
     #checks if the Machine can dispose an entity to the following object     
