@@ -340,6 +340,8 @@ def main(argv=[], input_data=None):
     print "execution time="+str(time.time()-start)  
     if input_data:
       return outputJSONString
+
+    print "test"
     
 if __name__ == '__main__':
     main()

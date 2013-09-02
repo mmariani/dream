@@ -171,7 +171,8 @@ class Machine(CoreObject):
             notBlockageTime=0    
                 
             while 1:
-                yield waituntil, self, self.ifCanDisposeOrHaveFailure       #wait until the next Object                                                                                 #is available or machine has failure
+                yield waituntil, self, self.ifCanDisposeOrHaveFailure       #wait until the next Object has an 
+                                                                            #available place or the Machine gets a failure                                                                                #is available or machine has failure
                         
                 if self.Up:  #if Next object available break 
                     break
