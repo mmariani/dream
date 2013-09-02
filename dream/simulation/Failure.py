@@ -77,7 +77,8 @@ class Failure(ObjectInterruption):
             try:
                 if(len(self.victim.Res.activeQ)>0):
                     self.interrupt(self.victim)       #when a Machine gets failure while in process it is interrupted
-                self.victim.Up=False
+                self.victim.Up=False                
+                self.victim.canDisposeOrHaveFailure.signal('haveFailure')   #send canDisposeOrHaveFailure signal to victim
                 self.victim.timeLastFailure=now()           
                 self.outputTrace("is down")
 
@@ -98,6 +99,7 @@ class Failure(ObjectInterruption):
             try:
                 if(len(self.victim.Res.activeQ)>0):                
                     reactivate(self.victim)   #since repairing is over, the Machine is reactivated
+                self.victim.objectIsUp.signal       #send objectIsUp signal to victim
                 self.victim.Up=True              
                 self.outputTrace("is up")              
                 if(self.repairman!="None"): #if a resource was used, it is now released

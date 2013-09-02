@@ -35,6 +35,7 @@ from CoreObject import CoreObject
 class Source(CoreObject): 
     def __init__(self, id, name, dist, time, item):
         Process.__init__(self)
+        CoreObject.__init__(self)
         self.id=id   
         self.objName=name   
         self.distType=dist      #label that sets the distribution type
@@ -54,7 +55,8 @@ class Source(CoreObject):
         #self.Res=Resource(capacity=infinity) 
         
     def initialize(self):
-        Process.__init__(self) 
+        Process.__init__(self)
+        CoreObject.__init__(self) 
         self.Res=Resource(capacity=infinity)    
         self.Res.activeQ=[]  
         self.Res.waitQ=[]       

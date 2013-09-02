@@ -37,6 +37,8 @@ class Dismantle(CoreObject):
 
     #initialize the object      
     def __init__(self, id, name, dist, time):
+        Process.__init__(self)
+        CoreObject.__init__(self) 
         self.id=id
         self.objName=name
         self.type="Dismantle"   #String that shows the type of object
@@ -62,6 +64,7 @@ class Dismantle(CoreObject):
         
     def initialize(self):
         Process.__init__(self)
+        CoreObject.__init__(self) 
         self.waitToDispose=False    #flag that shows if the object waits to dispose an entity    
         self.waitToDisposePart=False    #flag that shows if the object waits to dispose a part   
         self.waitToDisposeFrame=False    #flag that shows if the object waits to dispose a frame   

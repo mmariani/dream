@@ -25,13 +25,18 @@ Created on 12 Jul 2012
 Class that acts as an abstract. It should have no instances. All the core-objects should inherit from it
 '''
 
-from SimPy.Simulation import Process, Resource
+from SimPy.Simulation import Process, Resource, SimEvent, now
 
 #the core object
 class CoreObject(Process):
+
+    def __init__(self):
+        self.objectIsUp=SimEvent(name='objectIsUp')
+        self.canDisposeOrHaveFailure=SimEvent(name='canDisposeOrHaveFailure') 
     
     def initilize(self):
         Process.__init__(self) 
+        
         self.predecessorIndex=0     #holds the index of the predecessor from which the Machine will take an entity next
         self.successorIndex=0       #holds the index of the successor where the Machine will dispose an entity next
         self.Up=True                    #Boolean that shows if the machine is in failure ("Down") or not ("up")
@@ -57,7 +62,7 @@ class CoreObject(Process):
                                                 
         self.processingTimeOfCurrentEntity=0        #holds the total processing time that the current entity required                                               
                                                       
-        self.waitToDispose=False    #shows if the object waits to dispose an entity   
+        self.waitToDispose=False    #shows if the object waits to dispose an entity      
 
 
     #the main process of the core object
@@ -76,6 +81,7 @@ class CoreObject(Process):
         
     #gets an entity from the predecessor that the predecessor index points to     
     def getEntity(self):
+        #print now(), self.objName, "getting Entity from", self.previous[self.predecessorIndex].objName
         self.Res.activeQ=[self.previous[self.predecessorIndex].Res.activeQ[0]]+self.Res.activeQ   #get the entity from the previous object
                                                                                                       #and put it in front of the activeQ       
         self.previous[self.predecessorIndex].removeEntity()                                           #remove the entity from the previous object  
@@ -107,6 +113,7 @@ class CoreObject(Process):
     #checks if the Object can accept an entity       
     def canAccept(self): 
         pass
+    
     
     #takes the array and checks if all its values are identical (returns false) or not (returns true) 
     #needed because if somebody runs multiple runs in deterministic case it would crash!          

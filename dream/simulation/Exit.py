@@ -35,6 +35,7 @@ class Exit(CoreObject):
           
     def __init__(self, id, name):
         Process.__init__(self)
+        CoreObject.__init__(self)
         self.predecessorIndex=0   #holds the index of the predecessor from which the Exit will take an entity next
         self.id=id        
         self.objName=name
@@ -49,6 +50,7 @@ class Exit(CoreObject):
         
     def initialize(self):
         Process.__init__(self)
+        CoreObject.__init__(self)
         self.Res=Resource(capacity=infinity)         
         self.numOfExits=0
         self.totalLifespan=0

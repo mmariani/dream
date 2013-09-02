@@ -36,6 +36,7 @@ class Queue(CoreObject):
     
     def __init__(self, id, name, capacity, dummy):
         Process.__init__(self)
+        CoreObject.__init__(self)
         self.predecessorIndex=0     #holds the index of the predecessor from which the Queue will take an entity next
         self.successorIndex=0       #holds the index of the successor where the Queue will dispose an entity next
     
@@ -54,6 +55,7 @@ class Queue(CoreObject):
  
     def initialize(self):
         Process.__init__(self)
+        CoreObject.__init__(self)
         self.Res=Resource(self.capacity)        
         self.Up=True                    #Boolean that shows if the object is in failure ("Down") or not ("up")
         self.currentEntity=None      
@@ -94,13 +96,16 @@ class Queue(CoreObject):
     def checkIfQHasPlace(self): 
         return len(self.Q.activeQ)<self.capacity     
     
+   
     #checks if the Queue can accept an entity       
     #it checks also who called it and returns TRUE only to the predecessor that will give the entity.  
     def canAccept(self): 
         #if we have only one predecessor just check if there is a place available
-        if(len(self.previous)==1):
+        #if(len(self.previous)==1):
+        if 1:
             return len(self.Res.activeQ)<self.capacity   
     
+        '''
         if len(self.Res.activeQ)==self.capacity:
             return False
          
@@ -118,7 +123,7 @@ class Queue(CoreObject):
         if thecaller is self.previous[self.predecessorIndex]:
             flag=True
         return len(self.Res.activeQ)<self.capacity and flag  
-    
+        '''
     #checks if the Queue can dispose an entity to the following object
     #it checks also who called it and returns TRUE only to the successor that will give the entity. 
     #this is kind of slow I think got to check   
@@ -180,6 +185,29 @@ class Queue(CoreObject):
                     self.predecessorIndex=i  
                     maxTimeWaiting=timeWaiting                                     
         return len(self.Res.activeQ)<self.capacity and isRequested  
+    
+    def updatePredecessorIndex(self):
+        maxTimeWaiting=0     
+        #loop through the predecessors to see which have to dispose and which is the one blocked for longer
+        for i in range(len(self.previous)):
+            if(self.previous[i].haveToDispose()):
+                isRequested=True                
+                if(self.previous[i].downTimeInTryingToReleaseCurrentEntity>0):
+                    timeWaiting=now()-self.previous[i].timeLastFailureEnded
+                else:
+                    timeWaiting=now()-self.previous[i].timeLastEntityEnded
+                
+                #if more than one predecessor have to dispose take the part from the one that is blocked longer
+                if(timeWaiting>=maxTimeWaiting): 
+                    self.predecessorIndex=i  
+                    maxTimeWaiting=timeWaiting                                     
+    
+    #removes an entity from the Object
+    def removeEntity(self):     
+        self.Res.activeQ.pop(0)
+        self.updatePredecessorIndex()     
+        self.previous[self.predecessorIndex].canDisposeOrHaveFailure.signal("canDispose")
+        #print now(), self.objName, "sent signal to", self.previous[self.predecessorIndex].objName
              
     #outputs message to the trace.xls. Format is (Simulation Time | Entity Name | message)
     def outputTrace(self, message):
