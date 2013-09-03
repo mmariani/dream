@@ -79,7 +79,7 @@ class Failure(ObjectInterruption):
                     self.interrupt(self.victim)       #when a Machine gets failure while in process it is interrupted
                 self.victim.Up=False                
                 self.victim.canDisposeOrHaveFailure.signal('haveFailure')   #send canDisposeOrHaveFailure signal to victim
-                self.victim.canAcceptAndIsRequestedEvent.signal()
+                #self.victim.canAcceptAndIsRequestedEvent.signal()
                 self.victim.timeLastFailure=now()           
                 self.outputTrace("is down")
 
@@ -93,14 +93,15 @@ class Failure(ObjectInterruption):
                 yield request,self,self.repairman.Res
                 timeRepairStarted=now()
                 self.repairman.timeLastRepairStarted=now()
-                                
+                
             yield hold,self,self.rngTTR.generateNumber()    #wait until the repairing process is over
             self.victim.totalFailureTime+=now()-failTime    
             
             try:
                 if(len(self.victim.Res.activeQ)>0):                
                     reactivate(self.victim)   #since repairing is over, the Machine is reactivated
-                self.victim.objectIsUp.signal       #send objectIsUp signal to victim
+                self.victim.objectIsUp.signal()       #send objectIsUp signal to victim
+                self.victim.canAcceptAndIsRequestedEvent.signal()       #send canAcceptAndIsRequestedEvent signal to victim
                 self.victim.Up=True              
                 for coreObject in self.victim.next:
                     pass

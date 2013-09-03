@@ -82,7 +82,7 @@ class Queue(CoreObject):
                                                       
         self.waitToDispose=False    #shows if the object waits to dispose an entity  
              
-    def run(self):  
+    def run(self): 
         while 1:  
             #yield waituntil, self, self.canAcceptAndIsRequested     #wait until the Queue can accept an entity
                                                                     #and one predecessor requests it     
@@ -95,7 +95,7 @@ class Queue(CoreObject):
             
             for coreObject in self.next:
                 coreObject.canAcceptAndIsRequestedEvent.signal()
-            
+
             #if entity just got to the dummyQ set its startTime as the current time         
             if self.isDummy:               
                 self.Res.activeQ[0].startTime=now() 
@@ -135,7 +135,7 @@ class Queue(CoreObject):
     #checks if the Queue can dispose an entity to the following object
     #it checks also who called it and returns TRUE only to the successor that will give the entity. 
     #this is kind of slow I think got to check   
-    def haveToDispose(self): 
+    def haveToDispose(self, callerObject): 
         #if we have only one successor just check if the Queue holds one or more entities
         if(len(self.next)==1):
             return len(self.Res.activeQ)>0 
@@ -144,15 +144,8 @@ class Queue(CoreObject):
         if(len(self.Res.activeQ)==0):
             return False
    
-        #identify the caller method
-        frame = sys._getframe(1)
-        arguments = frame.f_code.co_argcount
-        if arguments == 0:
-            print "Not called from a method"
-            return
-        caller_calls_self = frame.f_code.co_varnames[0]
-        thecaller = frame.f_locals[caller_calls_self]
-               
+        thecaller=callerObject
+              
         #give the entity to the successor that is waiting for the most time. 
         #plant does not do this in every occasion!       
         maxTimeWaiting=0      
@@ -174,14 +167,14 @@ class Queue(CoreObject):
     def canAcceptAndIsRequested(self):
         #if we have only one predecessor just check if there is a place available and the predecessor has an entity to dispose
         if(len(self.previous)==1):
-            return len(self.Res.activeQ)<self.capacity and self.previous[0].haveToDispose() 
+            return len(self.Res.activeQ)<self.capacity and self.previous[0].haveToDispose(self) 
     
         isRequested=False
         maxTimeWaiting=0
         
         #loop through the predecessors to see which have to dispose and which is the one blocked for longer
         for i in range(len(self.previous)):
-            if(self.previous[i].haveToDispose()):
+            if(self.previous[i].haveToDispose(self)):
                 isRequested=True                
                 if(self.previous[i].downTimeInTryingToReleaseCurrentEntity>0):
                     timeWaiting=now()-self.previous[i].timeLastFailureEnded
@@ -198,7 +191,7 @@ class Queue(CoreObject):
         maxTimeWaiting=0     
         #loop through the predecessors to see which have to dispose and which is the one blocked for longer
         for i in range(len(self.previous)):
-            if(self.previous[i].haveToDispose()):
+            if(self.previous[i].haveToDispose(self)):
                 isRequested=True                
                 if(self.previous[i].downTimeInTryingToReleaseCurrentEntity>0):
                     timeWaiting=now()-self.previous[i].timeLastFailureEnded

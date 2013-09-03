@@ -111,6 +111,10 @@ class CoreObject(Process):
     def haveToDispose(self): 
         return len(self.Res.activeQ)>0
     
+    #checks if the Object can dispose an entity to the following object     
+    def haveToDispose(self, callerObject): 
+        return len(self.Res.activeQ)>0
+ 
     #checks if the Object can accept an entity and there is an entity in some predecessor waiting for it
     def canAcceptAndIsRequested(self):
         pass

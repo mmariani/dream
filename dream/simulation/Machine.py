@@ -116,8 +116,7 @@ class Machine(CoreObject):
             #yield waituntil, self, self.canAcceptAndIsRequested     #wait until the machine can accept an entity
                                                                         #and one predecessor requests it   
                                                                         
-            while 1:
-                #self.canAcceptAndIsRequestedEvent.occurred=False                
+            while 1: 
                 yield waitevent, self, self.canAcceptAndIsRequestedEvent
                 if self.canAcceptAndIsRequested():
                     break
@@ -164,7 +163,7 @@ class Machine(CoreObject):
                 else:
                     processingEndedFlag=False               #if no interruption occurred the processing in M1 is ended 
         
-            self.outputTrace("ended processing in "+self.objName)  
+            self.outputTrace("ended processing in "+self.objName)
             self.waitToDispose=True
             
             for coreObject in self.next:
@@ -184,7 +183,8 @@ class Machine(CoreObject):
             canDisposeRightAway=False
             #check if there is one available successor
             for nextObject in self.next:
-                canDisposeRightAway=nextObject.canAccept()
+                if nextObject.canAccept():
+                    canDisposeRightAway=True
 
             #if there was no available successor the Machine gets blocked
             if canDisposeRightAway==False:    
@@ -193,7 +193,7 @@ class Machine(CoreObject):
                                                                                 #available place or the Machine gets a failure      
                                                                                 #is available or machine has failure
 
-                    #print now(), self.objName, "start waitEvent"
+
                     self.canDisposeOrHaveFailure.occurred=False     #set the event to false because we do not want past events to 
                                                                     #interfere                  
                     yield waitevent,self,self.canDisposeOrHaveFailure   #wait until one successor Object has an 
@@ -204,35 +204,25 @@ class Machine(CoreObject):
                     
                     #if the object can dispose the Entity then the loop breaks       
                     if signal=="canDispose":
-                        print now(), self.objName, "can dispose"
                         break
                     #if we have a failure while the Machine is blocked
                     elif signal=="haveFailure":
                         failTime=now()   
-                        #yield waituntil, self, self.checkIfobjectIsUp
+                        self.objectIsUp.occurred=False     #set the event to false because we do not want past events to 
+                                                           #interfere  
                         yield waitevent,self,self.objectIsUp    #wait until the Machine is fixed
                         failureTime+=now()-failTime      
                         self.downTimeInTryingToReleaseCurrentEntity+=now()-failTime         
                         self.downTimeInCurrentEntity+=now()-failTime        
-                        self.timeLastFailureEnded=now()     
-                        for coreObject in self.next:
-                            coreObject.canAcceptAndIsRequestedEvent.signal()
+                        self.timeLastFailureEnded=now()    
+                        timeToBreak=False 
                         for nextObject in self.next:
+                            nextObject.canAcceptAndIsRequestedEvent.signal()
                             if nextObject.canAccept():
-                                break
-                    '''
-                    if self.Up:  #if Next object available break 
-                        break
-                    else:       #if M1 had failure, we want to wait until it is fixed and also count the failure time. 
-                        failTime=now()   
-                        #yield waituntil, self, self.checkIfobjectIsUp
-                        yield waitevent,self,self.objectIsUp
-                        failureTime+=now()-failTime      
-                        self.downTimeInTryingToReleaseCurrentEntity+=now()-failTime         
-                        self.downTimeInCurrentEntity+=now()-failTime        
-                        self.timeLastFailureEnded=now()           
-                    '''
-                 
+                                timeToBreak=True
+                        if timeToBreak:                            
+                            break
+                    
             totalTime=now()-timeEntered    
             blockageTime=totalTime-(tinMStart+failureTime)
             self.totalBlockageTime+=totalTime-(tinMStart+failureTime)   #the time of blockage is derived from 
@@ -251,46 +241,22 @@ class Machine(CoreObject):
         return self.Up
   
     #checks if the Machine can accept an entity       
-    #it checks also who called it and returns TRUE only to the predecessor that will give the entity.  
     def canAccept(self):
-        #if we have only one predecessor just check if there is a place and the machine is up
-        #if(len(self.previous)==1):   
-        if 1:
-            return self.Up and len(self.Res.activeQ)==0
-
-        #if the machine is busy return False immediately
-        if len(self.Res.activeQ)==self.capacity:
-            return False
-         
-        #identify the caller method 
-        frame = sys._getframe(1)
-        arguments = frame.f_code.co_argcount
-        if arguments == 0:
-            print "Not called from a method"
-            return
-        caller_calls_self = frame.f_code.co_varnames[0]
-        thecaller = frame.f_locals[caller_calls_self]
-        
-        #return true only to the predecessor from which the queue will take 
-        flag=False
-        if thecaller is self.previous[self.predecessorIndex]:
-            flag=True
-        return len(self.Res.activeQ)<self.capacity and flag  
-
+        return self.Up and len(self.Res.activeQ)==0
     
     #checks if the Machine can accept an entity and there is an entity in some predecessor waiting for it
     #also updates the predecessorIndex to the one that is to be taken
     def canAcceptAndIsRequested(self):
         #if we have only one predecessor just check if there is a place, the machine is up and the predecessor has an entity to dispose
         if(len(self.previous)==1):
-            return self.Up and len(self.Res.activeQ)==0 and self.previous[0].haveToDispose() 
+            return self.Up and len(self.Res.activeQ)==0 and self.previous[0].haveToDispose(self) 
         
         isRequested=False
         maxTimeWaiting=0
         
         #loop through the predecessors to see which have to dispose and which is the one blocked for longer
         for i in range(len(self.previous)):
-            if(self.previous[i].haveToDispose()):
+            if(self.previous[i].haveToDispose(self)):
                 isRequested=True               
                 if(self.previous[i].downTimeInTryingToReleaseCurrentEntity>0):
                     timeWaiting=now()-self.previous[i].timeLastFailureEnded
@@ -307,7 +273,7 @@ class Machine(CoreObject):
         maxTimeWaiting=0     
         #loop through the predecessors to see which have to dispose and which is the one blocked for longer
         for i in range(len(self.previous)):
-            if(self.previous[i].haveToDispose()):
+            if(self.previous[i].haveToDispose(self)):
                 isRequested=True                
                 if(self.previous[i].downTimeInTryingToReleaseCurrentEntity>0):
                     timeWaiting=now()-self.previous[i].timeLastFailureEnded
@@ -337,24 +303,16 @@ class Machine(CoreObject):
         #print now(), self.objName, "sent signal to", self.previous[self.predecessorIndex].objName
      
     #checks if the Machine can dispose an entity to the following object     
-    def haveToDispose(self): 
+    def haveToDispose(self, callerObject): 
         #if we have only one successor just check if machine waits to dispose and also is up        
-        if(len(self.next)==1):
+        if(len(self.next)==1):   
             return len(self.Res.activeQ)>0 and self.waitToDispose and self.Up
         
         #if the Machine is empty it returns false right away
         if(len(self.Res.activeQ)==0):
             return False
    
-        #identify the caller method
-        frame = sys._getframe(1)
-        arguments = frame.f_code.co_argcount
-        if arguments == 0:
-            print "Not called from a method"
-            return
-        caller_calls_self = frame.f_code.co_varnames[0]
-        thecaller = frame.f_locals[caller_calls_self]
-               
+        thecaller=callerObject       
         #give the entity to the successor that is waiting for the most time. 
         #plant does not do this in every occasion!       
         maxTimeWaiting=0      
@@ -374,21 +332,26 @@ class Machine(CoreObject):
     
     #actions to be taken after the simulation ends
     def postProcessing(self, MaxSimtime):
-
         alreadyAdded=False      #a flag that shows if the blockage time has already been added
         
+        mightBeBlocked=True
+        for coreObject in self.next:
+            if coreObject.canAccept():
+                mightBeBlocked=False
+           
         #if there is an entity that finished processing in a Machine but did not get to reach 
         #the following Object
         #till the end of simulation, we have to add this blockage to the percentage of blockage in Machine
         #we should exclude the failure time in current entity though!
-        if (len(self.Res.activeQ)>0) and (len(self.next[0].Res.activeQ)>0) and ((self.nameLastEntityEntered == self.nameLastEntityEnded)):       
+        #if (len(self.Res.activeQ)>0) and (len(self.next[0].Res.activeQ)>0) and ((self.nameLastEntityEntered == self.nameLastEntityEnded)):       
+        if (len(self.Res.activeQ)>0) and (mightBeBlocked) and ((self.nameLastEntityEntered == self.nameLastEntityEnded)):
             self.totalBlockageTime+=now()-(self.timeLastEntityEnded+self.downTimeInTryingToReleaseCurrentEntity)
             if self.Up==False:
                 self.totalBlockageTime-=now()-self.timeLastFailure
                 alreadyAdded=True
 
         #if Machine is currently processing an entity we should count this working time    
-        if(len(self.Res.activeQ)>0) and (not (self.nameLastEntityEnded==self.nameLastEntityEntered)):              
+        if(len(self.Res.activeQ)>0) and (not (self.nameLastEntityEnded==self.nameLastEntityEntered)):           
             #if Machine is down we should add this last failure time to the time that it has been down in current entity 
             if(len(self.Res.activeQ)>0) and (self.Up==False):                         
                 self.downTimeProcessingCurrentEntity+=now()-self.timeLastFailure             
@@ -399,8 +362,9 @@ class Machine(CoreObject):
         if(self.Up==False):
             self.totalFailureTime+=now()-self.timeLastFailure
             #we add the value only if it hasn't already been added
-            if((len(self.next[0].Res.activeQ)>0) and (self.nameLastEntityEnded==self.nameLastEntityEntered) and (not alreadyAdded)):
-                #self.totalBlockageTime+=self.timeLastFailure-self.timeLastEntityEnded 
+            #if((len(self.next[0].Res.activeQ)>0) and (self.nameLastEntityEnded==self.nameLastEntityEntered) and (not alreadyAdded)):
+            if((self.nameLastEntityEnded==self.nameLastEntityEntered) and (not alreadyAdded)):        
+                print "in"
                 self.totalBlockageTime+=(now()-self.timeLastEntityEnded)-(now()-self.timeLastFailure)-self.downTimeInTryingToReleaseCurrentEntity 
 
         #Machine was idle when it was not in any other state    
