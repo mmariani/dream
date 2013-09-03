@@ -156,12 +156,8 @@ def createObjects():
             stdev=float(processingTime.get('stdev', '0'))  
             min=float(processingTime.get('min', '0')) 
             max=float(processingTime.get('max', '0'))
-            #predecessorPartList=element.get('predecessorPartList', 'not found')
-            #predecessorFrameList=element.get('predecessorFrameList', 'not found')
             successorList=element.get('successorList', 'not found')
             A=Assembly(id, name, distributionType, [mean,stdev,min,max])
-            #A.previousPartIds=predecessorPartList
-            #A.previousFrameIds=predecessorFrameList
             A.nextIds=successorList
             G.AssemblyList.append(A)
             G.ObjList.append(A)

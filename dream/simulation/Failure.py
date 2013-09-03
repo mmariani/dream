@@ -100,8 +100,8 @@ class Failure(ObjectInterruption):
             try:
                 if(len(self.victim.Res.activeQ)>0):                
                     reactivate(self.victim)   #since repairing is over, the Machine is reactivated
-                self.victim.objectIsUp.signal()       #send objectIsUp signal to victim
-                self.victim.canAcceptAndIsRequestedEvent.signal()       #send canAcceptAndIsRequestedEvent signal to victim
+                self.victim.objectFixed.signal("object is fixed")       #send objectFixed signal to victim
+                self.victim.startCycle.signal("object is fixed")       #send startCycle signal to victim
                 self.victim.Up=True              
                 for coreObject in self.victim.next:
                     pass

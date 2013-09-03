@@ -101,7 +101,7 @@ class Source(CoreObject):
                 self.Res.activeQ.append(entity)    #append the entity to the resource 
                 i+=1        
                 for coreObject in self.next:
-                    coreObject.canAcceptAndIsRequestedEvent.signal() 
+                    coreObject.startCycle.signal("entity arrived in predecessor") 
                 yield hold,self,self.rng.generateNumber()
         elif(self.distType=="Exp"): #if the distribution type is exponential
             from Globals import G
@@ -118,7 +118,7 @@ class Source(CoreObject):
                 timeTillNextArrival=G.Rnd.expovariate(1.0/(self.interArrivalTime))  #create a random number that follows the     
                                                                                     #exponential distribution                                                  
                 for coreObject in self.next:
-                    coreObject.canAcceptAndIsRequestedEvent.signal() 
+                    coreObject.startCycle.signal("entity arrived in predecessor") 
                 yield hold,self,self.rng.generateNumber()
                 self.totalInterArrivalTime+=timeTillNextArrival                                                
         else:   #if the distribution type is something else it is an error

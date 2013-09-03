@@ -34,7 +34,7 @@
                 "mean": "1.5"
             },
             "failures": {
-                "failureDistribution": "Fixed",
+                "failureDistribution": "No",
                 "MTTF": "60",
                 "MTTR": "5"
             },

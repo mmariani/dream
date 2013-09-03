@@ -84,17 +84,18 @@ class Queue(CoreObject):
              
     def run(self): 
         while 1:  
-            #yield waituntil, self, self.canAcceptAndIsRequested     #wait until the Queue can accept an entity
-                                                                    #and one predecessor requests it     
+            #wait for and event that notes that the cycle might need to start 
             while 1:                                                       
-                yield waitevent, self, self.canAcceptAndIsRequestedEvent
-                if self.canAcceptAndIsRequested():
+                yield waitevent, self, self.startCycle
+                #the circle will start only if the object can accept an entity and one predecessor requests it
+                if self.canAcceptAndIsRequested():  
                     break                                             
             
             self.getEntity()
             
+            #as soon as an Entity has arrived Queue notifies successors that there is something for disposal
             for coreObject in self.next:
-                coreObject.canAcceptAndIsRequestedEvent.signal()
+                coreObject.startCycle.signal("entity arrived in predecessor")
 
             #if entity just got to the dummyQ set its startTime as the current time         
             if self.isDummy:               
@@ -185,31 +186,13 @@ class Queue(CoreObject):
                 if(timeWaiting>=maxTimeWaiting): 
                     self.predecessorIndex=i  
                     maxTimeWaiting=timeWaiting                                     
-        return len(self.Res.activeQ)<self.capacity and isRequested  
-    
-    def updatePredecessorIndex(self):
-        maxTimeWaiting=0     
-        #loop through the predecessors to see which have to dispose and which is the one blocked for longer
-        for i in range(len(self.previous)):
-            if(self.previous[i].haveToDispose(self)):
-                isRequested=True                
-                if(self.previous[i].downTimeInTryingToReleaseCurrentEntity>0):
-                    timeWaiting=now()-self.previous[i].timeLastFailureEnded
-                else:
-                    timeWaiting=now()-self.previous[i].timeLastEntityEnded
-                
-                #if more than one predecessor have to dispose take the part from the one that is blocked longer
-                if(timeWaiting>=maxTimeWaiting): 
-                    self.predecessorIndex=i  
-                    maxTimeWaiting=timeWaiting                                     
+        return len(self.Res.activeQ)<self.capacity and isRequested                                     
     
     #removes an entity from the Object
     def removeEntity(self):     
         self.Res.activeQ.pop(0)
-        self.updatePredecessorIndex()     
-        self.previous[self.predecessorIndex].canDisposeOrHaveFailure.signal("canDispose")
-        self.canAcceptAndIsRequestedEvent.signal()
-        #print now(), self.objName, "sent signal to", self.previous[self.predecessorIndex].objName
+        self.previous[self.predecessorIndex].canDisposeOrHaveFailure.signal("canDispose")   #send a signal to predecessor that it can dispose
+        self.startCycle.signal("object disposed an entity") #send a signal to self that the circle can be started
              
     #outputs message to the trace.xls. Format is (Simulation Time | Entity Name | message)
     def outputTrace(self, message):

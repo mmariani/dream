@@ -31,9 +31,9 @@ from SimPy.Simulation import Process, Resource, SimEvent, now
 class CoreObject(Process):
 
     def __init__(self):
-        self.objectIsUp=SimEvent(name='objectIsUp')
+        self.objectFixed=SimEvent(name='objectFixed')
         self.canDisposeOrHaveFailure=SimEvent(name='canDisposeOrHaveFailure') 
-        self.canAcceptAndIsRequestedEvent=SimEvent(name='canAcceptAndIsRequestedEvent') 
+        self.startCycle=SimEvent(name='startCycle') 
     
     def initilize(self):
         Process.__init__(self) 

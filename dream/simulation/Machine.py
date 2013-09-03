@@ -113,11 +113,10 @@ class Machine(CoreObject):
     def run(self):
         #execute all through simulation time
         while 1:
-            #yield waituntil, self, self.canAcceptAndIsRequested     #wait until the machine can accept an entity
-                                                                        #and one predecessor requests it   
-                                                                        
+            #wait for and event that notes that the cycle might need to start
             while 1: 
-                yield waitevent, self, self.canAcceptAndIsRequestedEvent
+                yield waitevent, self, self.startCycle
+                #the circle will start only if the object can accept an entity and one predecessor requests it
                 if self.canAcceptAndIsRequested():
                     break
                                                                                                                                                                
@@ -166,61 +165,55 @@ class Machine(CoreObject):
             self.outputTrace("ended processing in "+self.objName)
             self.waitToDispose=True
             
+            #since the processing ends Machine notifies successors that there is something for disposal
             for coreObject in self.next:
-                coreObject.canAcceptAndIsRequestedEvent.signal()
+                coreObject.startCycle.signal("entity ended processing in predecessor")
             
             self.totalWorkingTime+=tinMStart   #the total processing time for this entity is what the distribution initially gave          
             self.timeLastEntityEnded=now()      #this holds the last time that an entity ended processing in Machine 
             self.nameLastEntityEnded=self.currentEntity.name  #this holds the name of the last entity that ended processing in Machine
             self.completedJobs+=1               #Machine completed one more Job
-            self.downTimeProcessingCurrentEntity=0      
-            reqTime=now()           #entity has ended processing in Machine and requests for the next object 
-        
+            self.downTimeProcessingCurrentEntity=0             
         
             self.downTimeInTryingToReleaseCurrentEntity=0         
             notBlockageTime=0    
             
             canDisposeRightAway=False
-            #check if there is one available successor
+            #check if there is one available successor so that the Entity can be disposed right away (no blockage)
             for nextObject in self.next:
                 if nextObject.canAccept():
                     canDisposeRightAway=True
 
-            #if there was no available successor the Machine gets blocked
+            #if there was no available successor the Machine into blockage state
             if canDisposeRightAway==False:    
                 while 1:
-                    #yield waituntil, self, self.ifCanDisposeOrHaveFailure       #wait until the next Object has an 
-                                                                                #available place or the Machine gets a failure      
-                                                                                #is available or machine has failure
-
-
                     self.canDisposeOrHaveFailure.occurred=False     #set the event to false because we do not want past events to 
                                                                     #interfere                  
                     yield waitevent,self,self.canDisposeOrHaveFailure   #wait until one successor Object has an 
-                                                                        #available place or the Machine gets a failure      
-                                                                        #is available or machine has failure
-                    signal=self.canDisposeOrHaveFailure.signalparam                                            
-                    
-                    
+                                                                        #available place or the Machine gets a failure                                                                              
+                    signal=self.canDisposeOrHaveFailure.signalparam     #read the signal                                        
+
                     #if the object can dispose the Entity then the loop breaks       
                     if signal=="canDispose":
                         break
                     #if we have a failure while the Machine is blocked
                     elif signal=="haveFailure":
                         failTime=now()   
-                        self.objectIsUp.occurred=False     #set the event to false because we do not want past events to 
-                                                           #interfere  
-                        yield waitevent,self,self.objectIsUp    #wait until the Machine is fixed
+                        self.objectFixed.occurred=False     #set the event to false because we do not want past events to 
+                                                            #interfere  
+                        yield waitevent,self,self.objectFixed    #wait until the Machine is fixed
                         failureTime+=now()-failTime      
                         self.downTimeInTryingToReleaseCurrentEntity+=now()-failTime         
                         self.downTimeInCurrentEntity+=now()-failTime        
                         self.timeLastFailureEnded=now()    
-                        timeToBreak=False 
+                        canDispose=False 
+                        #send a signal to successors that their cycle may need to be started
                         for nextObject in self.next:
-                            nextObject.canAcceptAndIsRequestedEvent.signal()
+                            nextObject.startCycle.signal("predecessor is back to operation")
+                            #if there is a successor that can accept the Entity the loop breaks and the Entity is disposed
                             if nextObject.canAccept():
-                                timeToBreak=True
-                        if timeToBreak:                            
+                                canDispose=True
+                        if canDispose:                            
                             break
                     
             totalTime=now()-timeEntered    
@@ -268,28 +261,7 @@ class Machine(CoreObject):
                     self.predecessorIndex=i  
                     maxTimeWaiting=timeWaiting                                     
         return len(self.Res.activeQ)<self.capacity and isRequested               
-    
-    def updatePredecessorIndex(self):
-        maxTimeWaiting=0     
-        #loop through the predecessors to see which have to dispose and which is the one blocked for longer
-        for i in range(len(self.previous)):
-            if(self.previous[i].haveToDispose(self)):
-                isRequested=True                
-                if(self.previous[i].downTimeInTryingToReleaseCurrentEntity>0):
-                    timeWaiting=now()-self.previous[i].timeLastFailureEnded
-                else:
-                    timeWaiting=now()-self.previous[i].timeLastEntityEnded
-                
-                #if more than one predecessor have to dispose take the part from the one that is blocked longer
-                if(timeWaiting>=maxTimeWaiting): 
-                    self.predecessorIndex=i  
-                    maxTimeWaiting=timeWaiting                                     
 
-    #checks if the machine down or it can dispose the object
-    def ifCanDisposeOrHaveFailure(self):
-         return self.Up==False or self.next[0].canAccept() or len(self.Res.activeQ)==0  #the last part is added so that it is not removed and stack
-                                                                                        #gotta think of it again    
-  
     #removes an entity from the Machine
     def removeEntity(self):
         self.timeLastEntityLeft=now()
@@ -297,10 +269,8 @@ class Machine(CoreObject):
         self.waitToDispose=False                 
         self.Res.activeQ.pop(0)   
         self.downTimeInTryingToReleaseCurrentEntity=0    
-        self.updatePredecessorIndex() 
-        self.previous[self.predecessorIndex].canDisposeOrHaveFailure.signal("canDispose")
-        self.canAcceptAndIsRequestedEvent.signal()
-        #print now(), self.objName, "sent signal to", self.previous[self.predecessorIndex].objName
+        self.previous[self.predecessorIndex].canDisposeOrHaveFailure.signal("canDispose")   #send a signal to predecessor that it can dispose
+        self.startCycle.signal("object disposed an entity")     #send a signal to self that the circle can be started
      
     #checks if the Machine can dispose an entity to the following object     
     def haveToDispose(self, callerObject): 
@@ -334,9 +304,10 @@ class Machine(CoreObject):
     def postProcessing(self, MaxSimtime):
         alreadyAdded=False      #a flag that shows if the blockage time has already been added
         
+        #checks all the successors. If no one can accept an Entity then the machine might be blocked
         mightBeBlocked=True
-        for coreObject in self.next:
-            if coreObject.canAccept():
+        for nextObject in self.next:
+            if nextObject.canAccept():
                 mightBeBlocked=False
            
         #if there is an entity that finished processing in a Machine but did not get to reach 
