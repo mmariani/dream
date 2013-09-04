@@ -101,15 +101,17 @@ class Exit(Process):
     
     #checks if the Exit can accept an entity and there is an entity waiting for it
     def canAcceptAndIsRequested(self):
+        result = None
         if(len(self.previous)==1):  
-            return self.previous[0].haveToDispose()    
-    
-        isRequested=False
-        for i in range(len(self.previous)):
-            if(self.previous[i].haveToDispose()):
-                isRequested=True
-                self.predecessorIndex=i
-        return isRequested
+            result = self.previous[0].haveToDispose()
+        else:
+          isRequested=False
+          for i in range(len(self.previous)):
+              if(self.previous[i].haveToDispose()):
+                  isRequested=True
+                  self.predecessorIndex=i
+          result = isRequested
+        return result
     
     #gets an entity from the predecessor     
     def getEntity(self): 
@@ -260,4 +262,4 @@ class Exit(Process):
         for i in range(1, len(array)):
            if(array[i]!=array[1]):
                difValuesFlag=True
-        return difValuesFlag 
+        return difValuesFlag
