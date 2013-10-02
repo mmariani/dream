@@ -17,261 +17,224 @@
  * along with DREAM.  If not, see <http://www.gnu.org/licenses/>.
  * =========================================================================== */
 
-(function (scope, $, jsPlumb, console) {
+(function($) {
   "use strict";
-  scope.Dream = function (configuration) {
-    var that = jsonPlumb(), priv = {};
 
-    // Utility function to update the style of a box
-    priv.updateBoxStyle = function (box_id, style) {
-      var box;
-      box = $("#" + box_id);
-      $.each(style, function(key, value) {
-        box.css(key, value);
-      })
-    };
+  jsPlumb.bind("ready", function() {
 
-    // Utility function to update the content of the box
-    priv.updateBoxContent = function (box_id, title, throughput, worker) {
-      var box, html_string;
-      box = $("#" + box_id);
-      html_string = "<strong>" + title + "</strong>";
-      if (worker !== undefined && worker !== null) {
-        html_string += "<br> (" + worker + ")";
-      }
-      html_string += "<br><strong>througput: " + throughput + "</strong>";
-      box.html(html_string);
-    };
+    /* Initialize jsPlumb defaults
+     */
+    // TODO: default for connections ?
+    jsPlumb.setRenderMode(jsPlumb.SVG);
+    jsPlumb.importDefaults({
+      Endpoint: [ "Dot", {radius: 2} ],
+      ConnectionOverlays : [
+        [ "Arrow", { location:1, width:10 } ]
+      ],
+      Anchor: "Continuous"
+    });     
 
-    priv.displayTool = function() {
-      var render_element = $("[id=tools]");
-      for (var key in configuration) {
-        if (key !== 'Dream-Configuration') {
-          render_element.append('<div id="' + key + '" class="tool">' +
-                      key.split('-')[1] + "<ul/></div>");
-        };
+
+$.widget("dream.grapheditor", {
+  options: {
+    node_class: "graph_node", // CSS class for nodes
+    node_data_key: "grapheditor_node_data", // Key to store data on nodes using $.data
+                                            // XXX is it good idea to use
+                                            // $.data ???
+    draggable_nodes: true, // Can nodes be dragged
+  },
+
+  _create: function() {
+     this.nodes = {};
+     this.edges = {};
+
+     if (this.options.graph) {
+        this.graph(this.options.graph);
+     }
+  },
+
+  destroy: function() {
+    this.clear();
+    this._destroy();
+  },
+
+  clear: function() {
+    this.edges = {};
+    $.each(this.nodes, $.proxy(function(node_id, node) {
+      jsPlumb.remove(node);
+      delete(this["nodes"][node_id]);
+    }, this));
+  },
+
+  create_node_element: function(node_id, node_data) {
+    // Create an element for a node, and add it to the main element.
+    return $('<div>')
+       .uniqueId()
+      .addClass(this.options.node_class)
+      .text(node_data['name'] || node_id)
+      .appendTo(this.element)
+  },
+
+  add_node: function(node_id, node_data) {
+    /* add a node */
+    var element = this.create_node_element(node_id, node_data);
+    if (this.options.draggable_nodes) {
+      // make the node draggable
+      jsPlumb.draggable(element, {
+        containment: this.element,
+        stop: $.proxy(function(node_id, event) {
+            this.node_position(node_id, this.node_position(node_id));
+            this._trigger("node_moved", event, node_id);
+          }, this, node_id)
+      });
+    }
+    this.nodes[node_id] = element;
+    this.node_position(node_id, node_data);
+    this.node_data(node_id, node_data);
+    this._trigger('node_added', node_id);
+  },
+
+  create_edge_element: function(edge_id, source_node_id, destination_node_id, edge_data) {
+    // Create an element for an edge
+    var edge_label = edge_data['name'] || "";
+    jsPlumb.connect({
+      source: this.nodes[source_node_id].attr("id"),
+      target: this.nodes[destination_node_id].attr("id"),
+      paintStyle: { lineWidth: 1, strokeStyle: "#000" }, // XXX make this an option
+      overlays : [["Label", {label: edge_label}]]
+    });
+  },
+
+  add_edge: function(edge_id, source_node_id, destination_node_id, edge_data) {
+    /* add an edge */
+    this.create_edge_element(edge_id, source_node_id, destination_node_id, edge_data);
+    this.edges[edge_id] = [source_node_id, destination_node_id, edge_data];
+    this._trigger('edge_added', edge_id);
+  },
+
+  node_data: function(node_id, node_data) {
+    /* get or set data for a node */
+    var node = this.nodes[node_id];
+    if (node_data === undefined) {
+      return node.data(this.options.node_data_key);
+    }
+    this.nodes[node_id].data(this.options.node_data_key, node_data);
+    this._trigger("node_data_changed", node_id)
+    return this
+  },
+
+  edge_data: function(edge_id, edge_data) {
+    /* get or set data for an edge */
+    var edge = this.edges[edge_id];
+    if (edge_data === undefined) {
+      return edge[2]
+    }
+    this.edges[edge_id] = [edge[0], edge[1], edge_data]
+    this._trigger("edge_data_changed", edge_id)
+    return this
+  },
+
+  node_position: function(node_id, position) {
+    /* Get or set the position of a node with position given on a 0..1 scale */
+    var node = this.nodes[node_id],
+        node_position = node.position(),
+        element_position = this.element.position();
+    if (position === undefined) {
+      return {
+        "top": (node_position.top - element_position.top)
+          / (this.element.height() - node.height()),
+        "left": (node_position.left - element_position.left)
+          / (this.element.width() - node.width())
       };
-      render_element.append('<p/><a id="clear_all">Clear All</a>');
-    };
+    }
+    node.css({
+        "top": element_position.top + 
+          Math.floor(position.top * (this.element.height() - node.height())) + "px",
+        "left": element_position.left +
+          Math.floor(position.left * (this.element.width() - node.width())) + "px"
+    });
+    // update node data with position
+    this.node_data(node_id, $.extend(this.node_data(node_id), 
+      {top: position.top, left: position.left}));
+    jsPlumb.repaintEverything();
+    return this;
+  },
 
-    priv.initDialog = function() {
-      $( "#dialog-form" ).dialog({autoOpen: false});
-    };
-
-    that.initGeneralProperties = function() {
-      var fieldset = $("#general-fieldset"),
-          previous_data = that.getData()['general'],
-          previous_value = "",
-          prefix = "General-";
-      fieldset.children().remove()
-      $.each(configuration['Dream-Configuration']['property_list'],
-        function(idx, property){
-          if (property._class === "Dream.Property") {
-            previous_value = previous_data[property.id] || "";
-            if (previous_value.length > 0) {
-              previous_value = ' value="' + previous_value + '"';
-            }
-            fieldset.append("<label>" + property.id + "</label>" +
-                            '<input type="text" name="' + prefix + property.id + '"' +
-                            previous_value + ' id="' + prefix + property.id + '"' +
-                            ' class="text ui-widget-content ui-corner-all"/>');
-          }
-      });
-    };
-
-    priv.prepareDialogForElement = function(title, element_id) {
-      // code to allow changing values on connections. For now we assume
-      // that it is throughput. But we will need more generic code
-      //var throughput = $( "#throughput" ),
-      //  allFields = $( [] ).add( throughput );
-      $(function() {
-        $( "input[type=submit]" )
-          .button()
-          .click(function( event ) {
-            event.preventDefault();
-          });
-      });
-
-      // Render fields for that particular element
-      var fieldset = $("#dialog-fieldset");
-      $("#dialog-fieldset").children().remove()
-      var element_id_prefix = element_id.split("_")[0];
-      var property_list = configuration[element_id_prefix].property_list || [];
-      var previous_data = that.getData()["element"];
-      
-      var element_name = previous_data[element_id]['name'] || element_id;
-      fieldset.append('<label>Name</label><input type="text" name="name" id="name" value="' + element_name + '" class="text ui-widget-content ui-corner-all"/>');
-      
-      previous_data = previous_data[element_id] || {};
-      previous_data = previous_data.data || {};
-      var previous_value;
-      var renderField = function(property_list, previous_data, prefix) {
-        if (prefix === undefined) {
-          prefix = "";
-        }
-        $.each(property_list, function(key, property) {
-          if (property._class === "Dream.Property") {
-            previous_value = previous_data[property.id] || "";
-            if (previous_value.length > 0) {
-              previous_value = ' value="' + previous_value + '"';
-            }
-            fieldset.append("<label>" + prefix + property.id + "</label>" +
-                            '<input type="text" name="' + prefix + property.id + '"' +
-                            previous_value +
-                            ' id="' + prefix + property.id + '"' +
-                            ' class="text ui-widget-content ui-corner-all"/>')
-          } else if (property._class === "Dream.PropertyList") {
-            var next_prefix = prefix + property.id + "-";
-            var next_previous_data = previous_data[property.id] || {};
-            renderField(property.property_list, next_previous_data, next_prefix);
-          }
-        });
-      };
-      renderField(property_list, previous_data);
-
-      $( "#dialog-form" ).dialog({
-        autoOpen: false,
-        height: 300,
-        width: 350,
-        modal: true,
-        title: title || "",
-        buttons: {
-          Cancel: function() {
-            $( this ).dialog( "close" );
-          },
-          Delete: function() {
-            if (confirm("Are you sure you want to delete " + element_id + " ?")) {
-              that.removeElement(element_id);
-            }
-            $( this ).dialog( "close" );
-          },
-          Validate: function() {
-            var data = {}, prefixed_property_id, property_element;
-            var updateDataPropertyList = function(property_list, data, prefix) {
-              if (prefix === undefined) {
-                prefix = "";
-              }
-              
-              $.each(property_list, function(key, property) {
-                if (property._class === "Dream.Property") {
-                  prefixed_property_id = prefix + property.id;
-                  property_element = $("#" + prefixed_property_id);
-                  data[property.id] = property_element.val();
-                } else if (property._class === "Dream.PropertyList") {
-                  var next_prefix = prefix + property.id + "-";
-                  data[property.id] = {};
-                  updateDataPropertyList(property.property_list, data[property.id], next_prefix);
-                }
-              });
-            };
-
-            updateDataPropertyList(property_list, data);
-            that.updateElementData(element_id, {data: data, name: $("#name").val() || element_id});
-            
-            $( this ).dialog( "close" );
-          },
-        },
-        close: function() {
-          //allFields.val( "" ).removeClass( "ui-state-error" );
-        }
-      });
-    };
-
-    priv.super_newElement = that.newElement;
-    that.newElement = function (element) {
-      var element_prefix = element.id.split('_')[0];
-      priv.super_newElement(element, configuration[element_prefix]);
-      $("#" + element.id).bind('click', function() {
-        $( "#dialog-form" ).dialog( "destroy" ) ;
-        priv.prepareDialogForElement(element.id, element.id);
-        $( "#dialog-form" ).dialog( "open" );
-      });
-      // Store default values
-      var data = {}, property_list = configuration[element_prefix]["property_list"] || [];
-      var updateDefaultData = function(data, property_list) {
-        $.each(property_list, function(key, element) {
-          if (element) {
-            if(element._class === "Dream.Property") {
-              data[element.id] = element.default;
-            } else if (element._class === "Dream.PropertyList") {
-              data[element.id] = {};
-              var next_data = data[element.id];
-              var next_property_list = element.property_list || [];
-              updateDefaultData(next_data, next_property_list);
-            }
-          }
-        });
-      }
-      updateDefaultData(data, property_list);
-      that.updateElementData(element.id, {data: data});
-    };
-
-    priv.super_start = that.start;
-    that.start = function() {
-      priv.super_start();
-      priv.displayTool();
-      priv.initDialog();
-      // save general configuration default values
-      var general_properties = {};
-      $.each(configuration["Dream-Configuration"].property_list, function(idx, element) {
-        general_properties[element.id] = element.default;
-      });
-      that.setGeneralProperties(general_properties);
-      that.initGeneralProperties();
-    };
-
-    priv.formatForManpy = function(data) {
-      var manpy_dict = {}, coreObject = [];
-      $.each(data['element'], function(idx, element) { 
-        var clone_element = {};
-        /* clone the element and put content of 'data' at the top level. */
-        $.each(element, function(k, v) { 
-          if (k == 'data') {
-            $.each(v, function(kk, vv) { 
-              clone_element[kk] = vv;
-            });
-          } else {
-            clone_element[k] = v;
-          }
-        });
-        coreObject.push( clone_element );
-      });
-
-      manpy_dict['elementList'] = coreObject;
-      manpy_dict['modelResource'] = [];
-      manpy_dict['general'] = data['general'];
-      return manpy_dict;
+  graph: function(value) {
+    // get or set the graph data
+    if ( value === undefined ) {
+      // get
+      var graph = {"nodes": {}, "edges": {}};
+      $.each(this.nodes, $.proxy(function(node_id, node) {
+        graph["nodes"][node_id] = node.data(this.options.node_data_key);
+      }, this));
+      $.each(this.edges, $.proxy(function(edge_id, edge) {
+        graph["edges"][edge_id] = this.edges[edge_id];
+      }, this));
+      return graph;
     }
 
-    /** Runs the simulation, and call the callback with results once the
-     * simulation is finished.
-     */
-    that.runSimulation = function(callback) {
-      // handle Dream.General properties (in another function maybe ?)
-      var prefix = "General-", properties = {}, prefixed_property_id;
+    this.clear();
+    $.each(value.nodes, $.proxy(function(node_id, node) {
+      this.add_node(node_id, node);
+    }, this));
+    $.each(value.edges, $.proxy(function(edge_id, edge) {
+      this.add_edge(edge_id, edge[0], edge[1], edge[2] || {});
+    }, this));
+    return this;
+  }
 
-      $.each(configuration['Dream-Configuration']['property_list'],
-        function(idx, property){
-          if (property._class === "Dream.Property") {
-            prefixed_property_id = prefix + property.id;
-            properties[property.id] = $("#" + prefixed_property_id).val();
-          }
-      });
-      that.setGeneralProperties(properties);
+});
 
-      var model = priv.formatForManpy(that.getData());
-      $.ajax(
-        '/runSimulation', {
-        data: JSON.stringify({json: model}),
-        contentType: 'application/json',
-        type: 'POST',
-        success: function(data, textStatus, jqXHR){
-          callback(data);
+
+
+
+
+    $.getJSON("JSONInputs/Topology01.json", function(data) {
+      $("#graph").grapheditor({graph: data,
+        node_moved: function(event, node_id) {
+          $("#debug_zone").val(JSON.stringify(
+            $("#graph").grapheditor("graph"), undefined, " "));
         }
       });
-    };
 
-    return that;
-  };
+      // move a node
+      function move_node() {
+        $("#graph").grapheditor("node_position", $("#node_id").val(), {
+          top: $("#node_top").val() / 100,
+          left: $("#node_left").val() / 100});
+      }
+      $("#move_node").click(move_node);
+      $("#node_top").change(move_node);
+      $("#node_left").change(move_node);
+      
+      // when node is selected or moved, update the sliders
+      function updateSliders(node_id) {
+        var node_pos = grapheditor.node_position(node_id);
+        $("#node_id").val(node_id);
+        $("#node_top").val(Math.floor(node_pos.top * 100)).slider("refresh");
+        $("#node_left").val(Math.floor(node_pos.left * 100)).slider("refresh");
+      }
 
-}(window, jQuery, jsPlumb, console));
+      // Access the nodes
+      var grapheditor = $("#graph").data("dreamGrapheditor");
+      $.each(grapheditor.nodes, function(node_id, node) {
+        node.click(function(e){updateSliders(node_id)});
+        // test: click to add a property
+        node.click(function(e){
+           $.mobile.changePage( "#dialog", { role: "dialog" } );
+          $("#graph").grapheditor("node_data", node_id,
+            $.extend( $("#graph").grapheditor("node_data", node_id),
+                      {"dbclick": 1} ))
+        });
+      })
+      $("#graph").on("grapheditornode_moved", function(event, node_id) { updateSliders(node_id) })
+
+      // reload from json
+      $("#load_json").click(function() { $("#graph").grapheditor("graph",
+        JSON.parse($("#debug_zone").val()))});
+      
+    });
+
+  });
+})(jQuery);

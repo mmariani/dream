@@ -1,120 +1,53 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-	<head>
-		<title>Dream Simulation</title>
-		<link rel="stylesheet" href="css/demo-new.css">
-		<link rel="stylesheet" href="css/flowchartDemo.css">
-                <link rel="stylesheet" href="css/jquery-ui.css">
-                <link rel="stylesheet"
-                href="http://raw.github.com/DavidDurman/FlexiJsonEditor/master/jsoneditor.css">
-	</head>
-	<body data-demo-id="flowchartConnectorsDemo" data-library="jquery">
-		
-        <div id="headerWrapper"><div id="header"></div></div>		
-        
-          <div id="tools">
-            Tools
-          </div>
-          <div id="simulation_controls">
-            Simulation Parameters
-            <div title="Configure">
-              <form>
-              <fieldset id="general-fieldset">
-              </fieldset>
-              <a id="run_simulation">Run Simulation</a>
-              <a id="layout_graph">Layout Graph</a>
-              </form>
-            </div>
-          </div>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+    <title></title>
 
-        <div id="main">
-          <div id="render"></div>
-        </div>
+    <link rel="stylesheet" href="css/jquery-mobile/jquery-mobile.latest.css">
+    <link rel="stylesheet" href="css/extensions.css">
+    <link rel="stylesheet" href="css/fontawesome.css">
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/css.css">
 
-       <div id="graph_zone">
-         <div>Stations Utilization</div>
-         <div id="graph"> </div>
-       </div>
+  </head>
+  <body>
+
+    <!-- global panel -->
+
+    <!-- global header -->
+
+    <div id="dashboard" data-role="page" data-theme="slapos-white">
+      <div class="ui-content">
+        <!-- nothing to see here -->
 
 
-       <div id="sidebar">
-       <table>
-         <tr>
-          <td>Input</td>
-          <td>Result</td>
-         </tr>
-         <tr>
-           <td>
-           <textarea rows="20" cols="47" id="json_output" style="align:left">
-           </textarea></td>
-           <td>
-           <textarea rows="20" cols="47" id="json_result" style="align:right">
-           </textarea></td>
-       </table>
-
+        <div class="content_element">
+          <h1>DREAM Simulation</h1>
+          <p>
+            Welcome screen with some informations
+          </p>
         </div>
         
-        <!-- DEP -->
-        <script type="text/javascript" src="lib/jquery-1.8.1-min.js"></script>
-        <script type="text/javascript" src="lib/jquery-ui-1.8.23-min.js"></script>
-        <script type="text/javascript" src="lib/jquery.ui.touch-punch.min.js"></script>
-        <script type="text/javascript" src="lib/md5.js"></script>
-        <script type="text/javascript" src="lib/jio.js"></script>
-        <script type="text/javascript" src="lib/jio.localstorage.js"></script>
-        <script type="text/javascript" src="lib/pubsub.js"></script>
-		<!-- /DEP -->
-		
-		<!-- JS -->
-		<!-- support lib for bezier stuff -->
-		<script src="lib/jsBezier-0.5.js"></script>
-		<!-- jsplumb util -->
-		<script src="lib/jsPlumb/jsPlumb-util.js"></script>
-        <!-- base DOM adapter -->
-		<script src="lib/jsPlumb/jsPlumb-dom-adapter.js"></script>
-		<!-- main jsplumb engine -->
-		<script src="lib/jsPlumb/jsPlumb.js"></script>
-        <!-- anchors -->
-		<script src="lib/jsPlumb/jsPlumb-anchors.js"></script>   
-        <!-- endpoint -->
-		<script src="lib/jsPlumb/jsPlumb-endpoint.js"></script>      
-        <!-- connection -->
-		<script src="lib/jsPlumb/jsPlumb-connection.js"></script>
-		<!-- connector editors  -->
-		<script src="lib/jsPlumb/jsPlumb-connector-editors.js"></script>        
-		<!-- connectors, endpoint and overlays  -->
-		<script src="lib/jsPlumb/jsPlumb-defaults.js"></script>
-		<!-- state machine connectors -->
-		<script src="lib/jsPlumb/jsPlumb-connectors-statemachine.js"></script>
-		<!-- flowchart connectors -->
-		<script src="lib/jsPlumb/jsPlumb-connectors-flowchart.js"></script>        
-		<!-- SVG renderer -->
-		<script src="lib/jsPlumb/jsPlumb-renderers-svg.js"></script>
-		<!-- canvas renderer -->
-		<script src="lib/jsPlumb/jsPlumb-renderers-canvas.js"></script>
-		<!-- vml renderer -->
-		<script src="lib/jsPlumb/jsPlumb-renderers-vml.js"></script>
-        <!-- jquery jsPlumb adapter -->
-		<script src="lib/jsPlumb/jquery.jsPlumb.js"></script>
-		<!-- /JS -->
-        
-        <!-- flot -->
-    	<script src="lib/jquery.flot.js"></script>
-        <script src="lib/jquery.flot.stack.js"></script>
+      </div>
+    </div>
 
-   <script src="http://raw.github.com/DavidDurman/FlexiJsonEditor/master/jquery.jsoneditor.js"></script>
+    <!-- global footer (not used) -->
 
-<div id="dialog-form" title="Configure">
-  <form>
-  <fieldset id="dialog-fieldset">
-  </fieldset>
-  </form>
-</div>
+    <!-- global popup -->
 
+    <script src="js/libs/jquery/jquery.js"></script>
+    <script src="js/libs/jquery-mobile/jquery-mobile.js"></script>
+    <script src="js/extensions.js"></script>
+    <!--
+    <script src="js/libs/jio/sha256.amd.js"></script>
+    <script src="js/libs/jio/jio.js"></script>
+    <script src="js/libs/jio/complex_queries.js"></script>
+    <script src="js/libs/jio/localstorage.js"></script>
+    -->
+    <!-- stuff happens here -->
+    <script src="js/erp5_loader.js"></script>
 
-
-    <!--  demo code -->
-    <script src="src/dream.js"></script>
-    <script src="src/jsonPlumb.js"></script>
-    <script src="src/dream_launcher.js"></script>
   </body>
 </html>
