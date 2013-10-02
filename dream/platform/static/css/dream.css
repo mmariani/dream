@@ -1,39 +1,10 @@
 
-/*
-.left, .right { display: block; }
-.main_block  { display: block; }
-
-@media screen and (max-width:900px) {
-        .left, .right {
-              float: none;
-        }
-}
-
-
-
-nav { margin: 0; }
-
-.localnav {
-	margin:0 0 20px 0;
-}
-.ui-mobile-viewport .localnav li {
-	float:left;
-}
-.localnav .ui-btn-inner { 
-	padding: .6em 10px; 
-	font-size:80%; 
-}
-
-*/
-
-
- #main {
-    /* width: 850px; */
+.box {
     border-top: 2px solid #456;
     border-left: 2px solid #456;
     border-right: 2px solid #456;
     border-bottom: 2px solid #456;
-    height: 600px;  
+    height: 40em;
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
     border-top-left-radius: 10px;
@@ -89,3 +60,37 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
   padding:0.5em; 
 }
 
+/* Responsive graph 
+   If screen is small, do not allow to modify the screen 
+   If screen large enough, we could display tools to modify the graph */
+.tool_box {
+  display: none;
+}
+.graph_box {
+  width: 100%;
+}
+@media all and (min-width: 50em) {
+  .tool_box {
+    float: left;
+    width: 18.9%;
+    display: inherit;
+  }
+  .graph_box {
+    float: right;
+    width: 78.9%;
+  }
+}
+
+/* Overthrow CSS:
+   Enable overflow: auto on elements with overthrow class when html element has overthrow class too */
+.overthrow-enabled .overthrow {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.overthrow-enabled #some_text {
+    height: 5em;
+}
+.overthrow-enabled #graph {
+    height: 40em;
+}
