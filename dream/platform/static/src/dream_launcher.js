@@ -91,6 +91,28 @@
                     value[0].split('-')[1] + "<ul/></div>");
       };
     });
+    // Make tools draggable
+    /*
+{
+    _class: "Dream.Queue"
+capacity: "1"
+isDummy: "0"
+left: 0.4414893617021277
+name: "Q1"*/
+    $( ".tool" ).draggable({ opacity: 0.7, helper: "clone",
+                             stop: function(tool) {
+                                     var graph = $("#graph").data("dreamGrapheditor");
+                                     var box_top, box_left, _class, node_data = {};n
+                                     id_container[tool.target.id] = (id_container[tool.target.id] || 0) + 1;
+                                     _class = tool.target.id.replace('-', '.'); // XXX - vs .
+                                     node_data.left = (tool.clientX - $("#graph").position().left) / $("#graph").width();
+                                     node_data.top = (tool.clientY - $("#graph").position().top) / $("#graph").height();
+                                     console.log("dream_launcher, id_container", node_data);
+                                     graph.add_node(tool.target.id, node_data);
+                                     window_id += 1;
+                                  },
+    });
+
   });
 
 })(jQuery, _);
