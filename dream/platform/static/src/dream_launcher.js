@@ -17,11 +17,11 @@
  * along with DREAM.  If not, see <http://www.gnu.org/licenses/>.
  * =========================================================================== */
 
-(function($) {
+(function($, _) {
   "use strict";
   jsPlumb.bind("ready", function() {
     var dream_instance, jio;
-    jio = new jIO.newJio({type: "local", username: "dream", applicationname: "dream"});
+    //jio = new jIO.newJio({type: "local", username: "dream", applicationname: "dream"});
 
     var window_id = 1;
     var id_container = {}; // to allow generating next ids, like Machine_1, Machine_2, etc
@@ -81,137 +81,16 @@
                                                 property_container["confidenceLevel"],
                                                 property_container["processTimeout"], ],
                                _class: 'Dream.Repairman', },
-    }
+    };
 
-    dream_instance = Dream(configuration)
-    dream_instance.start();
-    $( ".tool" ).draggable({ opacity: 0.7, helper: "clone",
-                             stop: function(tool) {
-                                     var box_top, box_left, _class;
-                                     var offset = $("[id=render]").offset();
-                                     box_top = tool.clientY - offset.top + "px";
-                                     box_left = tool.clientX - offset.left + "px";
-                                     id_container[tool.target.id] = (id_container[tool.target.id] || 0) + 1;
-                                     _class = tool.target.id.replace('-', '.'); // XXX - vs .
-                                     dream_instance.newElement({id : tool.target.id + "_" + id_container[tool.target.id],
-                                                                coordinate: {top: box_top, left: box_left},
-                                                                _class: _class,
-                                     });
-                                     window_id += 1;
-                                  },
+    // Display tools
+    var render_element = $("[id=tools]");
+    _.each(_.pairs(configuration), function(value, key, list) {
+      if (value[0] !== 'Dream-Configuration') { // XXX
+        render_element.append('<div id="' + value[0] + '" class="tool">' +
+                    value[0].split('-')[1] + "<ul/></div>");
+      };
     });
+  });
 
-    // Check if there is already data when we first load the page, if yes, then build graph from it
-    jio.get({_id: "dream_demo"}, function(err, response) {
-      if (response !== undefined && response.data !== undefined) {
-        // Add all elements
-        $.each(response.data.element, function(key, value) {
-          var preference_data = response.data.preference !== undefined ? response.data.preference[value.id] :  {};
-          $.each(preference_data, function(preference_key, preference_value){
-            value[preference_key] = preference_value;
-          });
-          dream_instance.newElement(value);
-          dream_instance.updateElementData(value.id, {data: value.data || {}});
-        });
-
-        // Now link elements between them and update id_container
-        $.each(response.data.element, function(key, value) {
-          var element_id = value.id, prefix, suffix, splitted_element_id,
-              successor_list = value.successorList || [];
-          splitted_element_id = element_id.split("_");
-          prefix = splitted_element_id[0];
-          suffix = splitted_element_id[1];
-          id_container[prefix] = Math.max((id_container[prefix] || 0), parseInt(suffix, 10));
-          $.each(successor_list, function(idx, successor_value) {
-            dream_instance.connect(value.id, successor_value);
-          });
-        });
-        dream_instance.setGeneralProperties(response.data.general);
-        dream_instance.initGeneralProperties(); // XXX
-        $("#json_output").text(JSON.stringify(dream_instance.getData(), undefined, " "));
-      }
-
-      // once the data is read, we can subscribe to every changes
-      $.subscribe("Dream.Gui.onDataChange", function(event, data) {
-        $("#json_output").text(JSON.stringify(data, undefined, " "));
-        jio.put({_id: "dream_demo", data: data}, function(err, response) { } );
-      });
-    });
-
-
-
-    // Enable "Run Simulation" button
-    $("#run_simulation").button().click(
-      function(e){
-       dream_instance.runSimulation(
-          function(data) {
-            if (data['success']) {
-              $("#json_result").text(JSON.stringify(data['success'], undefined, " "));
-              
-              // display demo graph.
-              $("#graph_zone").show();
-              var blockage_data = [], waiting_data = [], failure_data = [], working_data = [], ticks= [], counter = 1;
-              $.each(data['success'].elementList, function(idx, obj){
-                 if (obj.results.working_ratio !== undefined) {
-                    /* when there is only one replication, the ratio is given as a float,
-                      otherwise we have a mapping avg, min max */
-                    blockage_data.push([counter, obj.results.blockage_ratio.avg || obj.results.blockage_ratio]);
-                    waiting_data.push([counter, obj.results.waiting_ratio.avg || obj.results.waiting_ratio]);
-                    failure_data.push([counter, obj.results.failure_ratio.avg || obj.results.failure_ratio]);
-                    working_data.push([counter, obj.results.working_ratio.avg || obj.results.working_ratio]);
-                    ticks.push([counter, dream_instance.getData().element[obj.id].name || obj.id]);
-                    counter ++;
-                 }
-              })
-              
-              var series = [
-                {label:"Working", data: working_data},
-                {label:"Waiting", data: waiting_data},
-                {label:"Failures", data: failure_data},
-                {label:"Blockage", data: blockage_data} ];
-            
-              var options = {
-                xaxis: {
-                  minTickSize: 1,
-                  ticks: ticks
-                },
-                yaxis: {max: 100},
-                series: {
-                  bars: {
-                    show: true,
-                    barWidth: .9,
-                    align: "center"
-                  },
-                  stack: true,
-                },
-              };
-              $.plot("#graph", series, options);
-
-            } else {
-              $("#json_result").effect('shake', 50).text(data['error']);
-            }
-       });
-       e.preventDefault();
-       return false;
-     });
-
-    // Enable "Layout Graph" button
-    $("#layout_graph").button().click(
-      function(e){
-       dream_instance.positionGraph();
-       // XXX dirty way to redisplay after jio is saved
-       setTimeout(function() {window.history.go(0)}, 500);
-     });
-
-    // Enable "Clear All" button
-    $("#clear_all").button().click(
-      function(e){
-       id_container = {};
-       dream_instance.clearAll();
-       e.preventDefault();
-       return false;
-     });
-  })
-  
-  $("#graph_zone").hide();
-})(jQuery);
+})(jQuery, _);
