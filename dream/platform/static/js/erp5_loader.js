@@ -2585,7 +2585,9 @@
           "data-wrap": "both",
           "data-top-grid": 1,
           "data-bottom-grid": 1,
-          "data-sorting": "true"
+          "data-sorting": "true",
+          "data-input": "#global_computer_networks",
+          "data-filter": "true"
         }
       },
       "configuration": {
