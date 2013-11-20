@@ -98,7 +98,11 @@ def runSimulation():
 
 def _runSimulation(parameter_dict, queue):
   try:
-    result = simulate_line_json(input_data=json.dumps(parameter_dict))
+    class_name = parameter_dict["_class"]
+    import class with class_name
+    result = class(parameter_dict)
+
+    #result = simulate_line_json(input_data=json.dumps(parameter_dict))
     queue.put(dict(success=json.loads(result)))
   except Exception, e:
     tb = traceback.format_exc()
