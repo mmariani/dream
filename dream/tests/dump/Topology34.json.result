@@ -175,7 +175,7 @@
    "schedulingRule": "FIFO"
   }, 
   {
-   "_class": "Dream.QueuePreemptive", 
+   "_class": "Dream.QueueJobShop", 
    "id": "Q2", 
    "schedulingRule": "FIFO"
   }
