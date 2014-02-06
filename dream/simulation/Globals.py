@@ -167,7 +167,7 @@ def countIntervalThroughput(argumentDict={}):
             totalExited=obj.totalNumberOfUnitsExited
             previouslyExited=sum(obj.intervalThroughPutList)
             currentExited+=totalExited-previouslyExited
-    obj.intervalThroughPutList.append(currentExited)
+            obj.intervalThroughPutList.append(currentExited)
             
             
             
