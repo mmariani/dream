@@ -44,6 +44,7 @@ class CoreObject(Process):
         self.Working=[]
         self.Blockage=[]
         self.Waiting=[]
+        self.OffShift=[]
         
         #default attributes set so that the CoreObject has them
         self.isPreemptive=False
@@ -61,19 +62,26 @@ class CoreObject(Process):
         self.totalFailureTime=0                         #holds the total failure time
         self.totalWaitingTime=0                         #holds the total waiting time
         self.totalWorkingTime=0                         #holds the total working time
+        self.totalOffShiftTime=0                        #holds the total off-shift time
         self.completedJobs=0                            #holds the number of completed jobs 
         # ============================== Entity related attributes =================================
         self.timeLastEntityEnded=0                      #holds the last time that an entity ended processing in the object
         self.nameLastEntityEnded=""                     #holds the name of the last entity that ended processing in the object
         self.timeLastEntityEntered=0                    #holds the last time that an entity entered in the object
         self.nameLastEntityEntered=""                   #holds the name of the last entity that entered in the object
-        self.timeLastFailure=0                          #holds the time that the last failure of the object started
-        self.timeLastFailureEnded=0                     #holds the time that the last failure of the object Ended
+
+        # ============================== shift related times =====================================
+        self.timeLastShiftStarted=0                     #holds the time that the last shift of the object started
+        self.timeLastShiftEnded=0                       #holds the time that the last shift of the object ended
+        self.offShiftTimeTryingToReleaseCurrentEntity=0 #holds the time that the object was off-shift while trying 
+                                                        #to release the current entity  
         # ============================== failure related times =====================================
+        self.timeLastFailure=0                          #holds the time that the last failure of the object started
+        self.timeLastFailureEnded=0                     #holds the time that the last failure of the object ended
         self.downTimeProcessingCurrentEntity=0          #holds the time that the machine was down while 
                                                         #processing the current entity
         self.downTimeInTryingToReleaseCurrentEntity=0   #holds the time that the object was down while trying 
-                                                        #to release the current entity  
+                                                        #to release the current entity                                                          
         self.downTimeInCurrentEntity=0                  #holds the total time that the 
                                                         #object was down while holding current entity
         self.timeLastEntityLeft=0                       #holds the last time that an entity left the object
@@ -133,6 +141,7 @@ class CoreObject(Process):
         
         self.failureTimeInCurrentEntity=0 
         self.downTimeInTryingToReleaseCurrentEntity=0
+        self.offShiftTimeTryingToReleaseCurrentEntity=0
         
         self.timeLastEntityLeft=now()
         self.outputTrace(activeEntity.name, "released "+self.objName) 
@@ -144,8 +153,10 @@ class CoreObject(Process):
     # =======================================================================
     def addBlockage(self): 
         self.totalTimeInCurrentEntity=now()-self.timeLastEntityEntered
-        self.totalTimeWaitingForOperator += self.operatorWaitTimeCurrentEntity 
-        blockage=now()-(self.timeLastEntityEnded+self.downTimeInTryingToReleaseCurrentEntity)       
+        self.totalTimeWaitingForOperator += self.operatorWaitTimeCurrentEntity
+        if self.timeLastEntityEnded<self.timeLastShiftStarted:      
+            self.offShiftTimeTryingToReleaseCurrentEntity=self.timeLastShiftStarted-self.timeLastEntityEnded
+        blockage=now()-(self.timeLastEntityEnded+self.downTimeInTryingToReleaseCurrentEntity+self.offShiftTimeTryingToReleaseCurrentEntity)       
         self.totalBlockageTime+=blockage     
     
     # =======================================================================

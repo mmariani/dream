@@ -374,6 +374,11 @@ class Machine(CoreObject):
             
             # set the variable that flags an Entity is ready to be disposed 
             self.waitToDispose=True
+            
+            #do this so that if it is overtime working it is not counted as off-shift time
+            if not self.onShift:
+                self.timeLastShiftEnded=now()
+            
             # update the total working time 
             self.totalWorkingTime+=self.totalProcessingTimeInCurrentEntity                        # the total processing time for this entity 
                                                                     # is what the distribution initially gave
@@ -651,7 +656,7 @@ class Machine(CoreObject):
     # =======================================================================
     # actions to be taken after the simulation ends
     # =======================================================================
-    def postProcessing(self, MaxSimtime=None):
+    def postProcessing(self, MaxSimtime=None): 
         if MaxSimtime==None:
             from Globals import G
             MaxSimtime=G.maxSimTime
@@ -667,13 +672,18 @@ class Machine(CoreObject):
             if nextObject.canAccept():
                 mightBeBlocked=False
         
+        #calculate the offShift time for current entity
+        offShiftTimeInCurrentEntity=0
+        if self.interruptCause:
+            if self.onShift==False and self.interruptCause.type=='ShiftScheduler':
+                offShiftTimeInCurrentEntity=now()-activeObject.timeLastShiftEnded
+
         # if there is an entity that finished processing in a Machine but did not get to reach 
         # the following Object till the end of simulation, 
         # we have to add this blockage to the percentage of blockage in Machine
         # we should exclude the failure time in current entity though!
-        # if (len(self.Res.activeQ)>0) and (len(self.next[0].Res.activeQ)>0) and ((self.nameLastEntityEntered == self.nameLastEntityEnded)):
         if (len(activeObjectQueue)>0) and (mightBeBlocked)\
-             and ((activeObject.nameLastEntityEntered == activeObject.nameLastEntityEnded)):
+             and ((activeObject.nameLastEntityEntered == activeObject.nameLastEntityEnded)) and self.onShift:
             # be careful here, might have to reconsider
             activeObject.totalBlockageTime+=now()-(activeObject.timeLastEntityEnded+activeObject.downTimeInTryingToReleaseCurrentEntity)
             if activeObject.Up==False:
@@ -687,11 +697,12 @@ class Machine(CoreObject):
             #if Machine is down we should add this last failure time to the time that it has been down in current entity 
             if self.Up==False:
 #             if(len(activeObjectQueue)>0) and (self.Up==False):
-                activeObject.downTimeProcessingCurrentEntity+=now()-activeObject.timeLastFailure             
+                activeObject.downTimeProcessingCurrentEntity+=now()-activeObject.timeLastFailure         
             activeObject.totalWorkingTime+=now()-activeObject.timeLastEntityEntered\
                                                 -activeObject.downTimeProcessingCurrentEntity\
                                                 -activeObject.operatorWaitTimeCurrentEntity\
-                                                -activeObject.setupTimeCurrentEntity
+                                                -activeObject.setupTimeCurrentEntity\
+                                                -offShiftTimeInCurrentEntity
             activeObject.totalTimeWaitingForOperator+=activeObject.operatorWaitTimeCurrentEntity
         elif(len(activeObject.getActiveObjectQueue())>0)\
             and (not (activeObject.nameLastEntityEnded==activeObject.nameLastEntityEntered))\
@@ -700,19 +711,32 @@ class Machine(CoreObject):
             if self.Up==False:
                 activeObject.downTimeProcessingCurrentEntity+=now()-activeObject.timeLastFailure
             activeObject.totalTimeWaitingForOperator+=now()-activeObject.timeWaitForOperatorStarted\
-                                                           -activeObject.downTimeProcessingCurrentEntity
-
+                                                           -activeObject.downTimeProcessingCurrentEntity\
+                                                           -offShiftTimeInCurrentEntity
         # if Machine is down we have to add this failure time to its total failure time
         # we also need to add the last blocking time to total blockage time     
         if(activeObject.Up==False):
             activeObject.totalFailureTime+=now()-activeObject.timeLastFailure
             # we add the value only if it hasn't already been added
-            #if((len(self.next[0].Res.activeQ)>0) and (self.nameLastEntityEnded==self.nameLastEntityEntered) and (not alreadyAdded)):
             if((mightBeBlocked) and (activeObject.nameLastEntityEnded==activeObject.nameLastEntityEntered) and (not alreadyAdded)):        
                 activeObject.totalBlockageTime+=(now()-activeObject.timeLastEntityEnded)-(now()-activeObject.timeLastFailure)-activeObject.downTimeInTryingToReleaseCurrentEntity 
+                alreadyAdded=True
         
+        #if the machine is off shift,add this to the off-shift time
+        # we also need to add the last blocking time to total blockage time  
+        if activeObject.onShift==False:
+            #add the time only if the object is interrupted because of off-shift
+            if self.interruptCause:
+                if self.interruptCause.type=='ShiftScheduler':
+                    self.totalOffShiftTime+=now()-self.timeLastShiftEnded 
+            elif len(self.getActiveObjectQueue())==0 or self.waitToDispose:
+                self.totalOffShiftTime+=now()-self.timeLastShiftEnded 
+            # we add the value only if it hasn't already been added
+            if((mightBeBlocked) and (activeObject.nameLastEntityEnded==activeObject.nameLastEntityEntered) and (not alreadyAdded)):        
+                activeObject.totalBlockageTime+=(now()-activeObject.timeLastEntityEnded)-(now()-activeObject.timeLastShiftEnded)-offShiftTimeInCurrentEntity 
+                
         #Machine was idle when it was not in any other state    
-        activeObject.totalWaitingTime=MaxSimtime-activeObject.totalWorkingTime-activeObject.totalBlockageTime-activeObject.totalFailureTime-activeObject.totalLoadTime-activeObject.totalSetupTime
+        activeObject.totalWaitingTime=MaxSimtime-activeObject.totalWorkingTime-activeObject.totalBlockageTime-activeObject.totalFailureTime-activeObject.totalLoadTime-activeObject.totalSetupTime-self.totalOffShiftTime
         
         if activeObject.totalBlockageTime<0 and activeObject.totalBlockageTime>-0.00001:  #to avoid some effects of getting negative cause of rounding precision
             self.totalBlockageTime=0  
@@ -728,6 +752,8 @@ class Machine(CoreObject):
         activeObject.WaitingForLoadOperator.append(100*self.totalTimeWaitingForLoadOperator/MaxSimtime)
         activeObject.Loading.append(100*self.totalLoadTime/MaxSimtime)
         activeObject.SettingUp.append(100*self.totalSetupTime/MaxSimtime)
+        activeObject.OffShift.append(100*self.totalOffShiftTime/MaxSimtime)
+
      
     # =======================================================================
     # outputs the the "output.xls"
@@ -815,6 +841,9 @@ class Machine(CoreObject):
             json['results']['working_ratio']=100*self.totalWorkingTime/G.maxSimTime
             json['results']['blockage_ratio']=100*self.totalBlockageTime/G.maxSimTime
             json['results']['waiting_ratio']=100*self.totalWaitingTime/G.maxSimTime
+            #output the off-shift time only if there is any
+            if self.totalOffShiftTime:
+                json['results']['off_shift_ratio']=100*self.totalOffShiftTime/G.maxSimTime
             if any(type=='Setup' for type in self.multOperationTypeList):
                 json['results']['setup_ratio']=100*self.totalSetupTime/G.maxSimTime
             if any(type=='Load' for type in self.multOperationTypeList):
@@ -864,7 +893,16 @@ class Machine(CoreObject):
             else:
                 json['results']['waiting_ratio']['min']=self.Waiting[0]
                 json['results']['waiting_ratio']['avg']=self.Waiting[0]
-                json['results']['waiting_ratio']['max']=self.Waiting[0] 
+                json['results']['waiting_ratio']['max']=self.Waiting[0]
+            json['results']['off_shifts_ratio']={}
+            if self.checkIfArrayHasDifValues(self.OffShift):
+                json['results']['off_shifts_ratio']['min']=stat.bayes_mvs(self.OffShift, G.confidenceLevel)[0][1][0]
+                json['results']['off_shifts_ratio']['avg']=stat.bayes_mvs(self.OffShift, G.confidenceLevel)[0][0]
+                json['results']['off_shifts_ratio']['max']=stat.bayes_mvs(self.OffShift, G.confidenceLevel)[0][1][1]
+            else:
+                json['results']['off_shifts_ratio']['min']=self.OffShift[0]
+                json['results']['off_shifts_ratio']['avg']=self.OffShift[0]
+                json['results']['off_shifts_ratio']['max']=self.OffShift[0]  
                 
         G.outputJSON['elementList'].append(json)
     
