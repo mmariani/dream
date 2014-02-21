@@ -232,7 +232,7 @@
                 "distributionType": "Fixed", 
                 "mean": "20"
               }, 
-              "stationId": [
+              "stationIdsList": [
               "M1"
               ], 
               "stepNumber": 3
