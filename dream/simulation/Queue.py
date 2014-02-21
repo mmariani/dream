@@ -75,13 +75,19 @@ class Queue(CoreObject):
             "NumStages", "RPC", "LPT", "SPT", "MS", "WINQ"):
             raise ValueError("Unknown scheduling rule %s for %s" %
               (scheduling_rule, id))
-
+    
+    #===========================================================================
+    # the initialise method
+    #===========================================================================
     def initialize(self):
         # using the Process __init__ and not the CoreObject __init__
         CoreObject.initialize(self)
-        # initialize the internal Queue (type Resource) of the Queue object 
+        # initialise the internal Queue (type Resource) of the Queue object 
         self.Res=Resource(self.capacity)   
-             
+    
+    #===========================================================================
+    # run method of the queue
+    #===========================================================================
     def run(self):  
         activeObjectQueue=self.getActiveObjectQueue()
         
@@ -93,6 +99,7 @@ class Queue(CoreObject):
             #if entity just got to the dummyQ set its startTime as the current time         
             if self.isDummy:               
                 activeObjectQueue[0].startTime=now() 
+    
     # =======================================================================
     #               checks if the Queue can accept an entity       
     #             it checks also who called it and returns TRUE 
@@ -134,10 +141,6 @@ class Queue(CoreObject):
         #if we have only one possible receiver just check if the Queue holds one or more entities
         if(len(activeObject.next)==1 or callerObject==None):
             return len(self.Res.activeQ)>0 
-        
-#         #if the Queue is empty it returns false right away
-#         if(len(activeObjectQueue)==0):
-#             return False
          
         thecaller=callerObject
                
