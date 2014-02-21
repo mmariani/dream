@@ -450,7 +450,22 @@ class Machine(CoreObject):
                     if (len(self.getActiveObjectQueue())==0 and self.shouldPreempt):
                         self.shouldPreempt==False
                         break     
-                    
+    
+    # =======================================================================
+    # actions to be carried out when the processing of an Entity ends
+    # =======================================================================    
+    def endProcessingActions(self):
+        activeObject=self.getActiveObject()
+        activeObjectQueue=activeObject.getActiveObjectQueue()
+        # the entity that just got processed is cold again it will get 
+        # hot again by the time it reaches the giver of the next machine
+        # TODO: check first if the next station is not of type Machine before 
+        #     you cool the entity down
+        activeObjectQueue[0].hot=False
+        from Globals import G
+        # the just processed entity is added to the list of entities 
+        # pending for the next processing
+        G.pendingEntities.append(activeObjectQueue[0])
                             
     # =======================================================================
     # checks if the machine is Up
@@ -540,8 +555,10 @@ class Machine(CoreObject):
                 # the operator performs no load and the entity is received by the machine while there is 
                 # no need for operators presence. The operator needs to be present only where the load Type 
                 # operation is assigned
-                return activeObject.checkIfActive() and len(activeObjectQueue)<activeObject.capacity\
-                        and giverObject.haveToDispose(activeObject)
+                if activeObject.checkIfActive() and len(activeObjectQueue)<activeObject.capacity\
+                        and giverObject.haveToDispose(activeObject) and not giverObject.exitIsAssigned():
+                    activeObject.giver.assignExit()
+                    return True
                 # TODO: if the set-up performance needs be first performed before the transfer of the entity to 
                 # the machine then the presence of an operator to setup the machine before the getEntity()
                 # is requested
@@ -592,7 +609,10 @@ class Machine(CoreObject):
         else:
             # the operator doesn't have to be present for the loading of the machine as the load operation
             # is not assigned to operators
-            return activeObject.checkIfActive() and len(activeObjectQueue)<activeObject.capacity and isRequested
+            if activeObject.checkIfActive() and len(activeObjectQueue)<activeObject.capacity and isRequested\
+                 and not giverObject.exitIsAssigned():
+                activeObject.giver.assignExit()
+                return True
             # while if the set up is performed before the (automatic) loading of the machine then the availability of the
             # operator is requested
 #             return (activeObject.operatorPool=='None' or activeObject.operatorPool.checkIfResourceIsAvailable())\
@@ -663,7 +683,8 @@ class Machine(CoreObject):
 #         # TESTING
 #         print now(), self.id, 'requested router'
         self.inPositionToGet=True
-        self.router.invokeRouter()
+        if not self.router.routerIsCalled():
+            self.router.invokeRouter()
     
     # =======================================================================
     #                   prepare the machine to be operated
