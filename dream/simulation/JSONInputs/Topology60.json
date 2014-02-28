@@ -381,7 +381,7 @@
   "numberOfSolutions": "4", 
   "confidenceLevel": "0.95", 
   "maxSimTime": "-1", 
-  "trace": "Yes",
+  "trace": "No",
   "currentDate": "2013/01/01"
  }
 }
