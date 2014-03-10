@@ -1,0 +1,442 @@
+{
+ "_class": "Dream.Simulation", 
+ "elementList": [
+  {
+   "_class": "Dream.MouldAssemblyBuffer", 
+   "id": "AB1"
+  }, 
+  {
+   "_class": "Dream.Machine", 
+   "id": "CAD1", 
+   "results": {
+    "blockage_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "failure_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "off_shift_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "waiting_ratio": {
+     "avg": 88.77005347593584, 
+     "max": 88.77005347593584, 
+     "min": 88.77005347593584
+    }, 
+    "working_ratio": {
+     "avg": 7.48663101604278, 
+     "max": 7.48663101604278, 
+     "min": 7.48663101604278
+    }
+   }
+  }, 
+  {
+   "_class": "Dream.Machine", 
+   "id": "CAD2", 
+   "results": {
+    "blockage_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "failure_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "off_shift_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "waiting_ratio": {
+     "avg": 90.37433155080214, 
+     "max": 90.37433155080214, 
+     "min": 90.37433155080214
+    }, 
+    "working_ratio": {
+     "avg": 6.41711229946524, 
+     "max": 6.41711229946524, 
+     "min": 6.41711229946524
+    }
+   }
+  }, 
+  {
+   "_class": "Dream.Machine", 
+   "id": "CAM1", 
+   "results": {
+    "blockage_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "failure_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "off_shift_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "waiting_ratio": {
+     "avg": 86.89839572192514, 
+     "max": 86.89839572192514, 
+     "min": 86.89839572192514
+    }, 
+    "working_ratio": {
+     "avg": 10.427807486631012, 
+     "max": 10.427807486631012, 
+     "min": 10.427807486631012
+    }
+   }
+  }, 
+  {
+   "_class": "Dream.Machine", 
+   "id": "CAM2", 
+   "results": {
+    "blockage_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "failure_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "off_shift_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "waiting_ratio": {
+     "avg": 88.23529411764704, 
+     "max": 88.23529411764704, 
+     "min": 88.23529411764704
+    }, 
+    "working_ratio": {
+     "avg": 8.55614973262032, 
+     "max": 8.55614973262032, 
+     "min": 8.55614973262032
+    }
+   }
+  }, 
+  {
+   "_class": "Dream.Exit", 
+   "id": "E1", 
+   "results": {
+    "lifespan": {
+     "avg": 25.875, 
+     "max": 25.875, 
+     "min": 25.875
+    }, 
+    "taktTime": {
+     "avg": 0, 
+     "max": 0, 
+     "min": 0
+    }, 
+    "throughput": {
+     "avg": 4, 
+     "max": 4, 
+     "min": 4
+    }
+   }
+  }, 
+  {
+   "_class": "Dream.Machine", 
+   "id": "EDM", 
+   "results": {
+    "blockage_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "failure_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "off_shift_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "waiting_ratio": {
+     "avg": 61.22994652406416, 
+     "max": 61.22994652406416, 
+     "min": 61.22994652406416
+    }, 
+    "working_ratio": {
+     "avg": 30.2139037433155, 
+     "max": 30.2139037433155, 
+     "min": 30.2139037433155
+    }
+   }
+  }, 
+  {
+   "_class": "Dream.Machine", 
+   "id": "IM", 
+   "results": {
+    "blockage_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "failure_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "off_shift_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "waiting_ratio": {
+     "avg": 86.89839572192513, 
+     "max": 86.89839572192513, 
+     "min": 86.89839572192513
+    }, 
+    "working_ratio": {
+     "avg": 10.962566844919783, 
+     "max": 10.962566844919783, 
+     "min": 10.962566844919783
+    }
+   }
+  }, 
+  {
+   "_class": "Dream.Machine", 
+   "id": "MA1", 
+   "results": {
+    "blockage_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "failure_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "off_shift_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "waiting_ratio": {
+     "avg": 89.30481283422459, 
+     "max": 89.30481283422459, 
+     "min": 89.30481283422459
+    }, 
+    "working_ratio": {
+     "avg": 10.6951871657754, 
+     "max": 10.6951871657754, 
+     "min": 10.6951871657754
+    }
+   }
+  }, 
+  {
+   "_class": "Dream.Machine", 
+   "id": "MA2", 
+   "results": {
+    "blockage_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "failure_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "off_shift_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "waiting_ratio": {
+     "avg": 94.6524064171123, 
+     "max": 94.6524064171123, 
+     "min": 94.6524064171123
+    }, 
+    "working_ratio": {
+     "avg": 5.3475935828877, 
+     "max": 5.3475935828877, 
+     "min": 5.3475935828877
+    }
+   }
+  }, 
+  {
+   "_class": "Dream.Machine", 
+   "id": "MA3", 
+   "results": {
+    "blockage_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "failure_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "off_shift_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "waiting_ratio": {
+     "avg": 97.32620320855615, 
+     "max": 97.32620320855615, 
+     "min": 97.32620320855615
+    }, 
+    "working_ratio": {
+     "avg": 2.67379679144385, 
+     "max": 2.67379679144385, 
+     "min": 2.67379679144385
+    }
+   }
+  }, 
+  {
+   "_class": "Dream.Machine", 
+   "id": "MILL1", 
+   "results": {
+    "blockage_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "failure_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "off_shift_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "waiting_ratio": {
+     "avg": 69.51871657754012, 
+     "max": 69.51871657754012, 
+     "min": 69.51871657754012
+    }, 
+    "working_ratio": {
+     "avg": 22.45989304812834, 
+     "max": 22.45989304812834, 
+     "min": 22.45989304812834
+    }
+   }
+  }, 
+  {
+   "_class": "Dream.Machine", 
+   "id": "MILL2", 
+   "results": {
+    "blockage_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "failure_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "off_shift_ratio": {
+     "avg": 0.0, 
+     "max": 0.0, 
+     "min": 0.0
+    }, 
+    "waiting_ratio": {
+     "avg": 72.99465240641713, 
+     "max": 72.99465240641713, 
+     "min": 72.99465240641713
+    }, 
+    "working_ratio": {
+     "avg": 21.925133689839566, 
+     "max": 21.925133689839566, 
+     "min": 21.925133689839566
+    }
+   }
+  }, 
+  {
+   "_class": "Dream.Repairman", 
+   "id": "OP1", 
+   "results": {
+    "waiting_ratio": {
+     "avg": 0.5347593582887585, 
+     "max": 0.5347593582887585, 
+     "min": 0.5347593582887585
+    }, 
+    "working_ratio": {
+     "avg": 99.46524064171123, 
+     "max": 99.46524064171123, 
+     "min": 99.46524064171123
+    }
+   }
+  }, 
+  {
+   "_class": "Dream.Repairman", 
+   "id": "OP2", 
+   "results": {
+    "waiting_ratio": {
+     "avg": 62.8342245989305, 
+     "max": 62.8342245989305, 
+     "min": 62.8342245989305
+    }, 
+    "working_ratio": {
+     "avg": 37.16577540106951, 
+     "max": 37.16577540106951, 
+     "min": 37.16577540106951
+    }
+   }
+  }, 
+  {
+   "_class": "Dream.Repairman", 
+   "id": "OP3", 
+   "results": {
+    "waiting_ratio": {
+     "avg": 62.8342245989305, 
+     "max": 62.8342245989305, 
+     "min": 62.8342245989305
+    }, 
+    "working_ratio": {
+     "avg": 37.16577540106951, 
+     "max": 37.16577540106951, 
+     "min": 37.16577540106951
+    }
+   }
+  }, 
+  {
+   "_class": "Dream.QueueManagedJob", 
+   "id": "Q0"
+  }, 
+  {
+   "_class": "Dream.ConditionalBuffer", 
+   "id": "QCAM"
+  }, 
+  {
+   "_class": "Dream.QueueManagedJob", 
+   "id": "QEDM"
+  }, 
+  {
+   "_class": "Dream.QueueManagedJob", 
+   "id": "QIM"
+  }, 
+  {
+   "_class": "Dream.QueueManagedJob", 
+   "id": "QMILL"
+  }
+ ], 
+ "general": {
+  "_class": "Dream.Configuration"
+ }
+}
