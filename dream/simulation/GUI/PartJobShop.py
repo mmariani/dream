@@ -5,14 +5,17 @@ import random
 import operator
 from datetime import datetime
 
-from dream.simulation.GUI import ACO
+#from dream.simulation.GUI import ACO
+from dream.simulation.GUI import Default
 from dream.simulation.GUI.Default import schema
 
 MACHINE_TYPE_SET = set(["Dream.MachineManagedJob", "Dream.MouldAssembly"])
 
-class Simulation(ACO.Simulation):
+#class Simulation(ACO.Simulation):
+class Simulation(Default.Simulation):
   def getConfigurationDict(self):
-    conf = ACO.Simulation.getConfigurationDict(self)
+    #conf = ACO.Simulation.getConfigurationDict(self)
+    conf = Default.Simulation.getConfigurationDict(self)
     conf["Dream-MachineManagedJob"] = {
         "property_list": [
           schema["operationType"]
