@@ -116,9 +116,11 @@ def runWithTimeout(func, timeout, *args, **kw):
 def _runWithTimeout(queue, func, args, kw):
    import signal
    import traceback
-
+   try:
    if hasattr(signal, 'SIGUSR1'):
      signal.signal(signal.SIGUSR1, lambda sig, stack: traceback.print_stack(stack))
+   except AttributeError:
+     print 'SIGUSR1 not found'           
      print "To see current traceback:"
      print "  kill -SIGUSR1 %s" % os.getpid()
    signal.signal(signal.SIGTERM, lambda sig, stack: traceback.print_stack(stack))
@@ -147,8 +149,14 @@ def _runSimulation(parameter_dict):
     app.logger.error(tb)
     return dict(error=tb)
 
-def getGUIInstance():
+def getGUIInstance(*args):
     # XXX do not instanciate each time!
+    parser = argparse.ArgumentParser(description='Launch the DREAM simulation platform.')
+    parser.add_argument('gui_class', metavar='GUI_KLASS', nargs="?", default="Default",
+                   help='The GUI klass to launch')
+    arguments = parser.parse_args()
+    global klass_name
+    klass_name = 'dream.simulation.GUI.%s' % arguments.gui_class
     klass = __import__(klass_name, globals(), {}, klass_name)
     instance = klass.Simulation(logger=app.logger)
     return instance
