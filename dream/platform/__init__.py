@@ -109,7 +109,10 @@ def runWithTimeout(func, timeout, *args, **kw):
   if process.is_alive():
     # process still alive after timeout, terminate it
     process.terminate()
-    process.join()
+    process.join() 
+    import traceback
+    traceback.print_stack()
+    print 'stack print, ready for timeout'	
     raise TimeoutError()
   return queue.get()
 
@@ -119,13 +122,14 @@ def _runWithTimeout(queue, func, args, kw):
    try:
    if hasattr(signal, 'SIGUSR1'):
      signal.signal(signal.SIGUSR1, lambda sig, stack: traceback.print_stack(stack))
-   except AttributeError:
-     print 'SIGUSR1 not found'           
      print "To see current traceback:"
      print "  kill -SIGUSR1 %s" % os.getpid()
+   except AttributeError:
+     print 'SIGUSR1 not found'           
    signal.signal(signal.SIGTERM, lambda sig, stack: traceback.print_stack(stack))
-
    queue.put(func(*args, **kw))
+   print 'result obtained'   
+
 
 @app.route("/runSimulation", methods=["POST", "OPTIONS"])
 def runSimulation():
