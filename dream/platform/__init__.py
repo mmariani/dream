@@ -99,7 +99,9 @@ def positionGraph():
 class TimeoutError(Exception):
   pass
 
+#def runWithTimeout(func, timeout, *args, **kw):
 def runWithTimeout(func, timeout, *args, **kw):
+  return func(*args, **kw)
   queue = multiprocessing.Queue()
   process = multiprocessing.Process(
     target=_runWithTimeout,
@@ -111,7 +113,7 @@ def runWithTimeout(func, timeout, *args, **kw):
     process.terminate()
     process.join() 
     import traceback
-    traceback.print_stack()
+    #traceback.print_stack()
     print 'stack print, ready for timeout'	
     raise TimeoutError()
   return queue.get()
@@ -126,9 +128,10 @@ def _runWithTimeout(queue, func, args, kw):
      print "  kill -SIGUSR1 %s" % os.getpid()
    except AttributeError:
      print 'SIGUSR1 not found'           
-   signal.signal(signal.SIGTERM, lambda sig, stack: traceback.print_stack(stack))
-   queue.put(func(*args, **kw))
-   print 'result obtained'   
+   r = func(*args, **kw)
+   print 'result %s obtained' % r
+   queue.put(r)
+   print 'result put in queue'  
 
 
 @app.route("/runSimulation", methods=["POST", "OPTIONS"])
