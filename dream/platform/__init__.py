@@ -121,17 +121,12 @@ def runWithTimeout(func, timeout, *args, **kw):
 def _runWithTimeout(queue, func, args, kw):
    import signal
    import traceback
-   try:
    if hasattr(signal, 'SIGUSR1'):
      signal.signal(signal.SIGUSR1, lambda sig, stack: traceback.print_stack(stack))
      print "To see current traceback:"
-     print "  kill -SIGUSR1 %s" % os.getpid()
-   except AttributeError:
-     print 'SIGUSR1 not found'           
-   r = func(*args, **kw)
-   print 'result %s obtained' % r
-   queue.put(r)
-   print 'result put in queue'  
+     print "  kill -SIGUSR1 %s" % os.getpid()         
+   signal.signal(signal.SIGTERM, lambda sig, stack: traceback.print_stack(stack))
+   queue.put(func(*args, **kw))
 
 
 @app.route("/runSimulation", methods=["POST", "OPTIONS"])
