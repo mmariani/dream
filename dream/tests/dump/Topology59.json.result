@@ -63,7 +63,7 @@
    "_class": "Dream.Job", 
    "id": "C1O2", 
    "results": {
-    "completionTime": 31.2, 
+    "completionTime": 28.7, 
     "schedule": [
      {
       "entranceTime": 3.6, 
@@ -96,17 +96,17 @@
       "stepNumber": 5
      }, 
      {
-      "entranceTime": 21.7, 
+      "entranceTime": 17.3, 
       "stationId": "EDM", 
       "stepNumber": 6
      }, 
      {
-      "entranceTime": 22.9, 
+      "entranceTime": 18.5, 
       "stationId": "AB1", 
       "stepNumber": 7
      }, 
      {
-      "entranceTime": 31.2, 
+      "entranceTime": 28.7, 
       "stationId": "MA2", 
       "stepNumber": 8
      }
@@ -140,12 +140,12 @@
       "stepNumber": 3
      }, 
      {
-      "entranceTime": 17.3, 
+      "entranceTime": 19.5, 
       "stationId": "MILL1", 
       "stepNumber": 4
      }, 
      {
-      "entranceTime": 21.7, 
+      "entranceTime": 23.9, 
       "stationId": "QEDM", 
       "stepNumber": 5
      }, 
@@ -171,7 +171,7 @@
    "_class": "Dream.Job", 
    "id": "C2O2", 
    "results": {
-    "completionTime": 31.2, 
+    "completionTime": 28.7, 
     "schedule": [
      {
       "entranceTime": 3.6, 
@@ -184,12 +184,12 @@
       "stepNumber": 1
      }, 
      {
-      "entranceTime": 22.9, 
+      "entranceTime": 18.5, 
       "stationId": "CAM2", 
       "stepNumber": 2
      }, 
      {
-      "entranceTime": 23.9, 
+      "entranceTime": 19.5, 
       "stationId": "QMILL", 
       "stepNumber": 3
      }, 
@@ -204,17 +204,17 @@
       "stepNumber": 5
      }, 
      {
-      "entranceTime": 29.5, 
+      "entranceTime": 27.0, 
       "stationId": "EDM", 
       "stepNumber": 6
      }, 
      {
-      "entranceTime": 31.2, 
+      "entranceTime": 28.7, 
       "stationId": "AB1", 
       "stepNumber": 7
      }, 
      {
-      "entranceTime": 31.2, 
+      "entranceTime": 28.7, 
       "stationId": "MA2", 
       "stepNumber": 8
      }
@@ -273,7 +273,7 @@
    "_class": "Dream.Exit", 
    "id": "E1", 
    "results": {
-    "lifespan": 31.750000000000004, 
+    "lifespan": 33.60000000000001, 
     "takt_time": 17.000000000000004, 
     "throughput": 2
    }
@@ -306,7 +306,7 @@
    "_class": "Dream.Job", 
    "id": "M1O1", 
    "results": {
-    "completionTime": 29.5, 
+    "completionTime": 33.2, 
     "schedule": [
      {
       "entranceTime": 26.0, 
@@ -319,12 +319,12 @@
       "stepNumber": 1
      }, 
      {
-      "entranceTime": 27.0, 
+      "entranceTime": 30.7, 
       "stationId": "IM", 
       "stepNumber": 2
      }, 
      {
-      "entranceTime": 29.5, 
+      "entranceTime": 33.2, 
       "stationId": "E1", 
       "stepNumber": 3
      }
@@ -338,12 +338,12 @@
     "completionTime": 34.00000000000001, 
     "schedule": [
      {
-      "entranceTime": 31.2, 
+      "entranceTime": 28.7, 
       "stationId": "MA2", 
       "stepNumber": 0
      }, 
      {
-      "entranceTime": 33.2, 
+      "entranceTime": 30.7, 
       "stationId": "QIM", 
       "stepNumber": 1
      }, 
