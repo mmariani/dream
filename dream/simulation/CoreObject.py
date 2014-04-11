@@ -25,7 +25,7 @@ Created on 12 Jul 2012
 Class that acts as an abstract. It should have no instances. All the core-objects should inherit from it
 '''
 
-from SimPy.Simulation import Process, Resource, now, SimEvent, waitEvent
+from SimPy.Simulation import Process, Resource, now, SimEvent, waitevent
 
 # ===========================================================================
 # the core object
@@ -278,6 +278,7 @@ class CoreObject(Process):
 #         # TESTING
 #         print now(), activeEntity.id, "got into "+self.id
         #=======================================================================
+        print now(), activeEntity.id, "got into "+self.id
         return activeEntity
     
     # =======================================================================
@@ -307,7 +308,7 @@ class CoreObject(Process):
     # =======================================================================
     def selectReceiver(self,possibleReceivers=[]):
         activeObject=self.getActiveObject()
-        candidates=possibleReceivevrs
+        candidates=possibleReceivers
         # dummy variables that help prioritize the objects requesting to give objects to the Machine (activeObject)
         maxTimeWaiting=0                                            # dummy variable counting the time a successor is waiting
         receiver=None
