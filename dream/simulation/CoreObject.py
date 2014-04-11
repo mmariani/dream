@@ -276,7 +276,7 @@ class CoreObject(Process):
                 activeEntity.hot = True
         #=======================================================================
 #         # TESTING
-#         print now(), activeEntity.id, "got into "+self.id
+#         print now(), activeEntity.name, "got into "+self.id
         #=======================================================================
         return activeEntity
     
@@ -324,7 +324,7 @@ class CoreObject(Process):
     def signalGiver(self):
         activeObject=self.getActiveObject()
         possibleGivers=[]
-        for object in [x for x in activeObject.next if x.haveToDispose(activeObject)]:
+        for object in [x for x in activeObject.previous if x.haveToDispose(activeObject)]:
             possibleGivers.append(object)
         if possibleGivers:
             activeObject.giver=activeObject.selectGiver(possibleGivers)
