@@ -196,7 +196,7 @@ class CoreObject(Process):
         #get the entity from the previous object and put it in front of the activeQ 
         activeObjectQueue.append(activeEntity)   
         # if the giverObject is blocked then unBlock it
-        if giverObject.exitIsAssigned():
+        if giverObject.exitIsAssignedTo():
             giverObject.unAssignExit()
         #append the time to schedule so that it can be read in the result
         #remember that every entity has it's schedule which is supposed to be updated every time 
@@ -278,7 +278,6 @@ class CoreObject(Process):
 #         # TESTING
 #         print now(), activeEntity.id, "got into "+self.id
         #=======================================================================
-        print now(), activeEntity.id, "got into "+self.id
         return activeEntity
     
     # =======================================================================
