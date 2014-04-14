@@ -299,6 +299,10 @@ class CoreObject(Process):
                     return False
                 activeObject.receiver=activeObject.selectReceiver(possibleReceivers)
                 activeObject.receiver.giver=activeObject
+            #===================================================================
+            # TESTING
+#             print now(), self.id, 'signaling receiver', self.receiver.id
+            #===================================================================
             activeObject.receiver.isRequested.signal(activeObject)
             return True
         return False
@@ -337,6 +341,10 @@ class CoreObject(Process):
                     return False
                 activeObject.giver=activeObject.selectGiver(possibleGivers)
                 activeObject.giver.receiver=activeObject
+            #===================================================================
+            # TESTING
+#             print now(), self.id, 'signaling giver', self.giver.id
+            #===================================================================
             activeObject.giver.canDispose.signal(activeObject)
             return True
         return False
