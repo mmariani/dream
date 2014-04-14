@@ -36,8 +36,10 @@ from Machine import Machine
 # ================================================================
 class BatchScrapMachine(Machine):
     
-    #initialize the id, the capacity of the resource and the distribution       
+    #===========================================================================
+    # initialize the id, the capacity of the resource and the distribution       
     # have to find which distribution returns random integers - Discrete distribution 
+    #===========================================================================
     def __init__(self, id, name, capacity=1, \
                  processingTime=None,
                  failureDistribution='No', MTTF=0, MTTR=0, availability=0, repairman='None',\
@@ -61,6 +63,9 @@ class BatchScrapMachine(Machine):
         self.scrapRng.min=scrMin
         self.scrapRng.max=scrMax
 
+    #===========================================================================
+    # removeEntity method
+    #===========================================================================
     def removeEntity(self, entity=None):
         activeEntity = Machine.removeEntity(self, entity)
         scrapQuantity=self.scrapRng.generateNumber()        
@@ -70,7 +75,9 @@ class BatchScrapMachine(Machine):
         return activeEntity
 
                                                                                 
-    #calculates the processing time
+    #===========================================================================
+    # calculates the processing time
+    #===========================================================================
     def calculateProcessingTime(self):
         activeEntity = self.getActiveObjectQueue()[0]
         return self.rng.generateNumber()*activeEntity.numberOfUnits         # this is if we have a default processing time for all the entities
